@@ -22,12 +22,29 @@ InlineCSS := 0
 RelativeLinks := 0
 DownloadResources := 0
 
-;wip: show progress in the GUI
+;wip: show progress in the GUI only if ShowGUI is in effect, otherwise remain silent
 
 If (AutoHotkeyNetUsername = "") ;set the AutoHotkey.net username if it was not given
  AutoHotkeyNetUsername := ForumUsername
 
 Gosub, ProcessCommandLine
+If ShowGUI
+ Gosub, ShowGUI
+Else
+{
+ Gosub, ValidateOptions
+ Gosub, GenerateWebsite
+}
+Return
+
+#Include Options Dialog.ahk
+
+ValidateOptions:
+
+Return
+
+GenerateWebsite:
+
 Return
 
 ProcessCommandLine:
