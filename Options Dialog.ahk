@@ -14,9 +14,9 @@ Gui, Add, Edit, x180 y120 w130 h20 vAutoHotkeyNetUsername Disabled, %ForumUserna
 Gui, Font, Bold
 Gui, Add, GroupBox, x330 y40 w290 h80, Upload
 Gui, Font, Norm
-Gui, Add, CheckBox, x340 y60 w270 h20, Upload website to AutoHotkey.net
-Gui, Add, Text, x340 y90 w160 h20 Disabled, AutoHotkey.net Password:
-Gui, Add, Edit, x500 y90 w110 h20 Disabled Password
+Gui, Add, CheckBox, x340 y60 w270 h20 vUploadWebsite gUploadWebsite, Upload website to AutoHotkey.net
+Gui, Add, Text, x340 y90 w160 h20 vAutoHotkeyNetPasswordLabel Disabled, AutoHotkey.net Password:
+Gui, Add, Edit, x500 y90 w110 h20 vAutoHotkeyNetPassword Disabled Password
 
 Gui, Font, Bold
 Gui, Add, GroupBox, x10 y160 w310 h70, Search
@@ -41,7 +41,7 @@ Gui, Add, CheckBox, x20 y300 w290 h20, Rewrite addresses into relative links if 
 
 Gui, Add, Text, x340 y260 w90 h20, Output Directory:
 Gui, Add, Edit, x430 y260 w150 h20, %OutputDirectory%
-Gui, Add, Button, x580 y260 w30 h20, ...
+Gui, Add, Button, x580 y260 w30 h20 gSelectFolder, ...
 Gui, Add, CheckBox, x340 y300 w270 h20, Download all resources
 
 Gui, Show, w630 h340, Website Generator
@@ -68,4 +68,15 @@ If !Temp1
  GuiControlGet, Temp1,, ForumUsername
  GuiControl,, AutoHotkeyNetUsername, %Temp1%
 }
+Return
+
+SelectFolder:
+Gui, +OwnDialogs
+FileSelectFolder, Temp1,, , Select an output folder:
+Return
+
+UploadWebsite:
+GuiControlGet, Temp1,, UploadWebsite
+GuiControl, Enable%Temp1%, AutoHotkeyNetPasswordLabel
+GuiControl, Enable%Temp1%, AutoHotkeyNetPassword
 Return
