@@ -39,7 +39,7 @@ Loop, %ResourcesDirectory%\Styles\*.css
 
 Gui, Add, DropDownList, x500 y150 w110 h20 r15 vStylesheet Choose1, % SubStr(StylesList,1,-1)
 Gui, Add, Radio, x340 y180 w270 h20 vSortTime Checked, Sort entries by order updated
-Gui, Add, Radio, x340 y200 w270 h20 vSortPages, Sort entries alphabetically
+Gui, Add, Radio, x340 y200 w270 h20 vSortEntries, Sort entries alphabetically
 
 Gui, Font, Bold
 Gui, Add, GroupBox, x10 y240 w610 h90, Behavior
@@ -63,9 +63,8 @@ ExitApp
 
 OptionsDialogSubmit:
 Gui, Submit
-Gosub, ValidateOptions
 Gosub, GenerateWebsite
-ExitApp
+Return
 
 EnterUsername:
 GuiControlGet, Temp1,, UsernamesDiffer
@@ -89,8 +88,9 @@ Return
 
 SelectFolder:
 Gui, +OwnDialogs
-FileSelectFolder, Temp1,, 6, Select an output folder:
-GuiControl,, OutputDirectory, %Temp1%
+FileSelectFolder, Temp1,, 3, Select an output folder:
+If !ErrorLevel
+ GuiControl,, OutputDirectory, %Temp1%
 Return
 
 UploadWebsite:
