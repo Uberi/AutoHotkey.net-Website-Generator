@@ -41,6 +41,8 @@ Return
 GenerateWebsite:
 Gosub, ValidateOptions
 Results := SearchForum(ForumUsername,SearchEnglishForum,SearchGermanForum)
+If UseCache
+ Cache := ProcessCache(Cache)
 If SortEntries
  Results := SortByTitle(Results)
 For Index, Result In Results
@@ -49,6 +51,7 @@ For Index, Result In Results
 }
 ExitApp
 
+;searches the AutoHotkey forums for scripts posted by a specified forum user
 SearchForum(ForumUsername,SearchEnglishForum,SearchGermanForum)
 {
  Results := Array()
@@ -71,6 +74,7 @@ SearchForum(ForumUsername,SearchEnglishForum,SearchGermanForum)
  Return, Results
 }
 
+;sorts an array of results by title
 SortByTitle(InputObject)
 {
  MaxIndex := ObjMaxIndex(InputObject), (MaxIndex = "") ? (MaxIndex := 0) : ""
@@ -81,7 +85,7 @@ SortByTitle(InputObject)
   ObjInsert(SortLeft,InputObject[A_Index]), ObjInsert(SortRight,InputObject[Middle + A_Index])
  If (MaxIndex & 1)
   ObjInsert(SortRight,InputObject[MaxIndex])
- SortLeft := SortObject(SortLeft), SortRight := SortObject(SortRight), MaxRight := MaxIndex - Middle, LeftIndex := 1, RightIndex := 1, Result := Object()
+ SortLeft := SortByTitle(SortLeft), SortRight := SortByTitle(SortRight), MaxRight := MaxIndex - Middle, LeftIndex := 1, RightIndex := 1, Result := Object()
  Loop, %MaxIndex%
  {
   If (LeftIndex > Middle)
@@ -93,6 +97,24 @@ SortByTitle(InputObject)
  }
  Return, Result
 }
+
+ValidateOptions:
+If !InStr(FileExist(OutputDirectory),"D") ;output directory does not exist
+{
+ MsgBox, 16, Error, Invalid output directory:`n`n"%OutputDirectory%"
+ ExitApp, 1
+}
+
+FileRead, PageStyle, %ResourcesDirectory%\Styles\%Stylesheet%.css ;read the stylesheet
+If ErrorLevel ;stylesheet could not be read
+{
+ MsgBox, 16, Error, Invalid stylesheet:`n`n"%Stylesheet%"
+ ExitApp, 1
+}
+
+If UseCache
+ FileRead, Cache, %ResourcesDirectory%\Cache.txt ;read the page cache
+Return
 
 ShowObject(ShowObject,Padding = "")
 {
@@ -115,29 +137,22 @@ ShowObject(ShowObject,Padding = "")
  Return, ObjectContents
 }
 
-ValidateOptions:
-If !InStr(FileExist(OutputDirectory),"D") ;output directory does not exist
+ProcessCache(Cache)
 {
- MsgBox, 16, Error, Invalid output directory:`n`n"%OutputDirectory%"
- ExitApp, 1
+ Cache := Trim(Cache," `t`n") ;remove leading and trailing whitespace and newlines
+ Result := Object()
+ Loop, Parse, Cache, `n, %A_Space%`t
+ {
+  Position := InStr(A_LoopField,"`t"), URL := SubStr(A_LoopField,1,Position - 1), Field := SubStr(A_LoopField,Position + 1) ;extract the URL field
+  Entry := Object()
+  Position := InStr(Field,"`t"), Entry.Type := SubStr(Field,1,Position - 1), Field := SubStr(Field,Position + 1) ;extract the type field
+  Position := InStr(Field,"`t"), Entry.Image := SubStr(Field,1,Position - 1), Field := SubStr(Field,Position + 1) ;extract the image field
+  Position := InStr(Field,"`t"), Entry.Download := SubStr(Field,1,Position - 1), Field := SubStr(Field,Position + 1) ;extract the download field
+  Entry.Description := Field ;extract the description field
+  ObjInsert(Result,URL,Entry) ;add the entry to the cache object
+ }
+ Return, Result
 }
-
-FileRead, PageStyle, %ResourcesDirectory%\Styles\%Stylesheet%.css ;read the stylesheet
-If ErrorLevel ;stylesheet could not be read
-{
- MsgBox, 16, Error, Invalid stylesheet:`n`n"%Stylesheet%"
- ExitApp, 1
-}
-
-If UseCache
-{
- FileRead, PageCache, %ResourcesDirectory%\PageCache.txt ;read the page cache
- If ErrorLevel ;page cache could not be read
-  UseCache := 0 ;disable the option, as the cache is unavailable
- Else
-  PageCache := "`n" . RegExReplace(PageCache,"S)^\n+|\n+$") . "`n"
-}
-Return
 
 ProcessCommandLine:
 ValidParameters := Object("ForumUsername",0,"AutoHotkeyNetUsername",0,"AutoHotkeyNetPassword",0,"ShowGUI",1,"UploadWebsite",1,"SearchEnglishForum",1,"SearchGermanForum",1,"UseCache",1,"Stylesheet",0,"SortEntries",1,"OutputDirectory",0,"InlineStylesheet",1,"RelativeLinks",1,"DownloadResources",1) ;a list of parameters and the types they accept (0 for string, 1 for boolean)
