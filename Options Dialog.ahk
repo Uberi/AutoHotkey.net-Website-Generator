@@ -27,17 +27,14 @@ Gui, Add, CheckBox, x20 y200 w290 h20 vSearchGermanForum Checked, Search in the 
 Gui, Font, Bold
 Gui, Add, GroupBox, x330 y130 w290 h100, Appearance
 Gui, Font, Norm
-Gui, Add, Text, x340 y150 w160 h20, Stylesheet:
+Gui, Add, Text, x340 y150 w160 h20, Template:
 
-;look for styles in the resources directory
-StylesList := ""
-Loop, %ResourcesDirectory%\Styles\*.css
-{
- SplitPath, A_LoopFileName,,,, Temp1
- StylesList .= Temp1 . "|"
-}
+;look for templates in the templates directory
+TemplatesList := ""
+Loop, %ResourcesPath%\*, 2
+ TemplatesList .= A_LoopFileName . "|"
 
-Gui, Add, DropDownList, x500 y150 w110 h20 r15 vStylesheet Choose1, % SubStr(StylesList,1,-1)
+Gui, Add, DropDownList, x500 y150 w110 h20 r15 vTemplate Choose1, % SubStr(TemplatesList,1,-1)
 Gui, Add, Radio, x340 y180 w270 h20 vSortTime Checked, Sort entries by order updated
 Gui, Add, Radio, x340 y200 w270 h20 vSortEntries, Sort entries alphabetically
 
