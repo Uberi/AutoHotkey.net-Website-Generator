@@ -1,3 +1,41 @@
+ProcessCommandLineParameters()
+{
+ global
+ local ValidParameters, Temp1, Parameter, Position, Option, Value
+ ValidParameters := Object("ForumUsername",0,"AutoHotkeyNetUsername",0,"AutoHotkeyNetPassword",0,"ShowGUI",1,"UploadWebsite",1,"SearchEnglishForum",1,"SearchGermanForum",1,"UseCache",1,"Template",0,"SortEntries",1,"OutputDirectory",0,"InlineStylesheet",1,"RelativeLinks",1,"DownloadResources",1) ;a list of parameters and the types they accept (0 for string, 1 for boolean)
+ Loop, %0% ;loop through each command line parameter in the form "--OPTION=VALUE"
+ {
+  Parameter := %A_Index%
+  If (SubStr(Parameter,1,2) != "--") ;parameters must begin with "--"
+  {
+   MsgBox, 16, Error, Invalid command line parameter given:`n`n"%Parameter%"
+   ExitApp, 1
+  }
+  Temp1 := SubStr(Parameter,3), Position := InStr(Temp1,"=")
+  If !Position ;could not find "="
+  {
+   MsgBox, 16, Error, Option is missing value:`n`n"%Parameter%"
+   ExitApp, 1
+  }
+  Option := SubStr(Temp1,1,Position - 1), Value := SubStr(Temp1,Position + 1)
+  If !ObjHasKey(ValidParameters,Option)
+  {
+   MsgBox, 16, Error, Unknown option:`n`n"%Parameter%"
+   ExitApp, 1
+  }
+  If ValidParameters[Option] ;parameter is a boolean flag
+  {
+   If (Value = "True")
+    Value := 1
+   Else If (Value = "False")
+    Value := 0
+   Else
+    Value := !!Value
+  }
+  %Option% := Value
+ }
+}
+
 OptionsDialogShow:
 Gui, Font, s18 Bold, Arial
 Gui, Add, Text, x2 y0 w630 h30 Center, AutoHotkey.net Website Generator
@@ -15,8 +53,8 @@ Gui, Font, Bold
 Gui, Add, GroupBox, x330 y40 w290 h80, Upload
 Gui, Font, Norm
 Gui, Add, CheckBox, x340 y60 w270 h20 vUploadWebsite gUploadWebsite, Upload website to AutoHotkey.net
-Gui, Add, Text, x340 y90 w160 h20 vAutoHotkeyNetPasswordLabel Disabled, AutoHotkey.net Password:
-Gui, Add, Edit, x500 y90 w110 h20 vAutoHotkeyNetPassword Disabled Password
+Gui, Add, Text, x340 y90 w140 h20 vAutoHotkeyNetPasswordLabel Disabled, AutoHotkey.net Password:
+Gui, Add, Edit, x480 y90 w130 h20 vAutoHotkeyNetPassword Disabled Password
 
 Gui, Font, Bold
 Gui, Add, GroupBox, x10 y160 w310 h70, Search
@@ -27,14 +65,15 @@ Gui, Add, CheckBox, x20 y200 w290 h20 vSearchGermanForum Checked, Search in the 
 Gui, Font, Bold
 Gui, Add, GroupBox, x330 y130 w290 h100, Appearance
 Gui, Font, Norm
-Gui, Add, Text, x340 y150 w160 h20, Template:
+Gui, Add, Text, x340 y150 w140 h20, Template:
 
 ;look for templates in the templates directory
 TemplatesList := ""
 Loop, %ResourcesPath%\*, 2
  TemplatesList .= A_LoopFileName . "|"
 
-Gui, Add, DropDownList, x500 y150 w110 h20 r15 vTemplate Choose1, % SubStr(TemplatesList,1,-1)
+Gui, Add, DropDownList, x480 y150 w130 h20 r15 vTemplate Choose1, % SubStr(TemplatesList,1,-1)
+GuiControl, ChooseString, Template, %Template%
 Gui, Add, Radio, x340 y180 w270 h20 vSortTime Checked, Sort entries by order updated
 Gui, Add, Radio, x340 y200 w270 h20 vSortEntries, Sort entries alphabetically
 

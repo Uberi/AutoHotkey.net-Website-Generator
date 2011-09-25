@@ -13,7 +13,7 @@ SearchGermanForum := 1
 UseCache := 1
 
 ;appearance
-Template := "Picturesque Blue"
+Template := "Picturesque Green"
 SortEntries := 0
 
 ;output
@@ -30,7 +30,7 @@ ResourcesPath := A_ScriptDir . "\Resources"
 If (AutoHotkeyNetUsername = "") ;set the AutoHotkey.net username if it was not given
  AutoHotkeyNetUsername := ForumUsername
 
-Gosub, ProcessCommandLine
+ProcessCommandLineParameters() ;process any command line parameters
 
 If ShowGUI
  Gosub, OptionsDialogShow
@@ -40,7 +40,7 @@ Return
 
 GenerateWebsite:
 TemplatePath := ResourcesPath . "\" . Template ;set the path of the template
-PagePath := TemplatesPath . "\index.html"
+PagePath := TemplatePath . "\index.html" ;set the path of the page template
 StylesheetPath := TemplatePath . "\style.css" ;set the path of the stylesheet
 Gosub, ValidateOptions
 Results := SearchForum(ForumUsername,SearchEnglishForum,SearchGermanForum)
@@ -123,6 +123,13 @@ If ErrorLevel ;stylesheet could not be read
  MsgBox, 16, Error, Could not find stylesheet:`n`n"%StylesheetPath%"
  ExitApp, 1
 }
+
+FileRead, PageTemplate, %PagePath% ;read the stylesheet
+If ErrorLevel ;stylesheet could not be read
+{
+ MsgBox, 16, Error, Could not find page template:`n`n"%PagePath%"
+ ExitApp, 1
+}
 Return
 
 ShowObject(ShowObject,Padding = "")
@@ -163,41 +170,6 @@ ProcessCache(Cache)
  Return, Result
 }
 
-ProcessCommandLine:
-ValidParameters := Object("ForumUsername",0,"AutoHotkeyNetUsername",0,"AutoHotkeyNetPassword",0,"ShowGUI",1,"UploadWebsite",1,"SearchEnglishForum",1,"SearchGermanForum",1,"UseCache",1,"Template",0,"SortEntries",1,"OutputDirectory",0,"InlineStylesheet",1,"RelativeLinks",1,"DownloadResources",1) ;a list of parameters and the types they accept (0 for string, 1 for boolean)
-Loop, %0% ;loop through each command line parameter in the form "--OPTION=VALUE"
-{
- Parameter := %A_Index%
- If (SubStr(Parameter,1,2) != "--") ;parameters must begin with "--"
- {
-  MsgBox, 16, Error, Invalid command line parameter given:`n`n"%Parameter%"
-  ExitApp, 1
- }
- Temp1 := SubStr(Parameter,3), Position := InStr(Temp1,"=")
- If !Position ;could not find "="
- {
-  MsgBox, 16, Error, Option is missing value:`n`n"%Parameter%"
-  ExitApp, 1
- }
- Option := SubStr(Temp1,1,Position - 1), Value := SubStr(Temp1,Position + 1)
- If !ObjHasKey(ValidParameters,Option)
- {
-  MsgBox, 16, Error, Unknown option:`n`n"%Parameter%"
-  ExitApp, 1
- }
- If ValidParameters[Option] ;parameter is a boolean flag
- {
-  If (Value = "True")
-   Value := 1
-  Else If (Value = "False")
-   Value := 0
-  Else
-   Value := !!Value
- }
- %Option% := Value
-}
-Return
-
-#Include Options Dialog.ahk
+#Include Options.ahk
 #Include Forum Functions.ahk
 #Include Template.ahk
