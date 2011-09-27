@@ -33,7 +33,7 @@ If (AutoHotkeyNetUsername = "") ;set the AutoHotkey.net username if it was not g
 ProcessCommandLineParameters() ;process any command line parameters
 
 If ShowGUI
- Gosub, OptionsDialogShow
+ ShowOptionsDialog()
 Else
  Gosub, GenerateWebsite
 Return
@@ -42,7 +42,7 @@ GenerateWebsite:
 TemplatePath := ResourcesPath . "\" . Template ;set the path of the template
 PagePath := TemplatePath . "\index.html" ;set the path of the page template
 StylesheetPath := TemplatePath . "\style.css" ;set the path of the stylesheet
-Gosub, ValidateOptions
+ValidateOptions() ;validate the given options
 Results := SearchForum(ForumUsername,SearchEnglishForum,SearchGermanForum)
 If UseCache
 {
@@ -51,10 +51,7 @@ If UseCache
 }
 If SortEntries
  Results := SortByTitle(Results)
-For Index, Result In Results
-{
- ;wip: do something with the results here
-}
+;wip: do something with the results here
 ExitApp
 
 ;searches the AutoHotkey forums for scripts posted by a specified forum user
@@ -103,34 +100,6 @@ SortByTitle(InputObject)
  }
  Return, Result
 }
-
-ValidateOptions:
-If !InStr(FileExist(OutputDirectory),"D") ;output directory does not exist
-{
- MsgBox, 16, Error, Invalid output directory:`n`n"%OutputDirectory%"
- ExitApp, 1
-}
-
-If !InStr(FileExist(TemplatePath),"D") ;output directory does not exist
-{
- MsgBox, 16, Error, Invalid template:`n`n"%Template%"
- ExitApp, 1
-}
-
-FileRead, Stylesheet, %StylesheetPath% ;read the stylesheet
-If ErrorLevel ;stylesheet could not be read
-{
- MsgBox, 16, Error, Could not find stylesheet:`n`n"%StylesheetPath%"
- ExitApp, 1
-}
-
-FileRead, PageTemplate, %PagePath% ;read the stylesheet
-If ErrorLevel ;stylesheet could not be read
-{
- MsgBox, 16, Error, Could not find page template:`n`n"%PagePath%"
- ExitApp, 1
-}
-Return
 
 ShowObject(ShowObject,Padding = "")
 {
