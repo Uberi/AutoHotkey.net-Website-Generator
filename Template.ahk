@@ -6,11 +6,11 @@ Template =
  <head>
   <title>This is a title</title>
  </head>
- <body>
+ <body><ahk_repeat>
   <p><span>Hello</span>, World!</p>
   <ahk_author>
-  <ahk_for_each_script>Test <ahk_script_index></ahk_for_each_script>
- </body>
+  <ahk_for_each Script Attrib>Test <ahk_script_index></ahk_for_each>
+ </ahk_repeat></body>
 </html>
 )
 MsgBox % TemplatePage(Template)
@@ -21,21 +21,21 @@ MsgBox % ~n//~0
 
 TemplatePage(Template)
 {
- global TemplateTags
  TemplateTags := Object("ahk_author",Object("Matched",0
-   ,"Process",Func("TemplateProcessAuthor")
+   ,"Process",Func("TemplateProcessAuthor"))
   ,"ahk_script_index",Object("Matched",0
-   ,"Process",Func("TemplateProcessIndex")
+   ,"Process",Func("TemplateProcessIndex"))
   ,"ahk_for_each",Object("Matched",1
-   ,"Process",Func("TemplateProcessForEach")
+   ,"Process",Func("TemplateProcessForEach"))
   ,"ahk_repeat",Object("Matched",1
-   ,"Process",Func("TemplateProcessRepeat"))
+   ,"Process",Func("TemplateProcessRepeat")))
 
  ;build up the pattern matching template tags
+ AttributePattern := "\s+([\w-]+)(?:\s*=\s*(?:""([^""]*)""|'([^']*)'|([^\s""'``=<>]*)))?"
  TagPattern := "iS)<("
  For Key, Value In TemplateTags
-  TagPattern .= Key . "|" . (Value.Matched ? ("/" . Key . "|") : "") ;insert tag names to the pattern, as well as closing tag names if necessary
- TagPattern := SubStr(TagPattern,1,-1) . ")\b[^>]*>"
+  TagPattern .= (Value.Matched ? "/?" : "") . Key . "|" ;insert tag names to the pattern, as well as the closing tag pattern if necessary
+ TagPattern := SubStr(TagPattern,1,-1) . ")((?:" . AttributePattern . ")*)\s*>"
 
  Stack := Array(), StackIndex := 0 ;initialize stack
  Position := 1, Position1 := 1, Result := "", ResultPosition := 0 ;initialize variables
@@ -58,30 +58,52 @@ TemplatePage(Template)
 
    While, StackIndex >= SearchIndex ;add closing tags
    {
-    TempPosition := Stack[StackIndex].Position ;retrieve the position of the matching opening tag
-    TagContents := SubStr(Result,TempPosition + 1,ResultPosition - TempPosition) ;retrieve the contents of the tag
-    TagContents := TemplateMatchedTag(Output1,TagContents) ;process the template tag
-    Result := SubStr(Result,1,TempPosition) . TagContents, ResultPosition := TempPosition + StrLen(TagContents) ;insert the processed result into the processed page
+    Temp1 := Stack[StackIndex].Position ;retrieve the position of the matching opening tag
+    TagContents := SubStr(Result,Temp1 + 1,ResultPosition - Temp1) ;retrieve the contents of the tag
+    TagContents := TemplateTags[Output1].Process(TemplateAttributes(Stack[StackIndex].Attributes,AttributePattern),TagContents) ;process the template tag
+    Result := SubStr(Result,1,Temp1) . TagContents, ResultPosition := Temp1 + StrLen(TagContents) ;insert the processed result into the processed page
     ObjRemove(Stack,StackIndex,""), StackIndex -- ;pop the tag from the stack
    }
   }
-  Else If TemplateTags[Output1] ;opening template tag
-    StackIndex ++, Stack[StackIndex] := Object("TagName",Output1,"Position",ResultPosition) ;push the tag and the current position in the result onto the stack
+  Else If TemplateTags[Output1].Matched ;tag is to be matched
+    StackIndex ++, Stack[StackIndex] := Object("TagName",Output1,"Attributes",Output2,"Position",ResultPosition) ;push the tag, its attributes, and the current position in the result onto the stack
   Else ;self contained tag
   {
-   TagContents := TemplateSelfContainedTag(Output1)
+   TagContents := TemplateTags[Output1].Process(TemplateAttributes(Output2,AttributePattern))
    Result .= TagContents, ResultPosition += StrLen(TagContents) ;process the template tag
   }
  }
  Return, Result . SubStr(Template,Position1) ;return the resulting page with the last section appended
 }
 
-TemplateSelfContainedTag(TagName)
+TemplateAttributes(Attributes,AttributePattern)
 {
- Return, "[" . TagName . "]"
+ Position := 1 ;initialize variables
+ Result := Object()
+ While, Position := RegExMatch(Attributes,AttributePattern,Output,Position) ;loop over each tag attribute
+ {
+  Position += StrLen(Output)
+  Result[Output1] := (Output2 != "") ? Output2 : ((Output3 != "") ? Output3 : Output4)
+ }
+ Return, Result
 }
 
-TemplateMatchedTag(TagName,TagContents)
+TemplateProcessAuthor(This,Attributes)
 {
- Return, "{" . TagName . ":" . TagContents . "}"
+ Return, "[Uberi]"
+}
+
+TemplateProcessIndex(This,Attributes)
+{
+ Return, 1
+}
+
+TemplateProcessForEach(This,Attributes,TagContents)
+{
+ Return, "{" . TagContents . "}"
+}
+
+TemplateProcessRepeat(This,Attributes,TagContents)
+{
+ Return, "{repeat " . Attributes.Times . " times: " . TagContents . "}"
 }
