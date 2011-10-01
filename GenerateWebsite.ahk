@@ -38,21 +38,23 @@ Else
  Gosub, GenerateWebsite
 Return
 
-GenerateWebsite:
-TemplatePath := ResourcesPath . "\" . Template ;set the path of the template
-PagePath := TemplatePath . "\index.html" ;set the path of the page template
-StylesheetPath := TemplatePath . "\style.css" ;set the path of the stylesheet
-ValidateOptions() ;validate the given options
-Results := SearchForum(ForumUsername,SearchEnglishForum,SearchGermanForum)
-If UseCache
+GenerateWebsite()
 {
- FileRead, Cache, %ResourcesPath%\Cache.txt ;read the page cache
- Cache := ProcessCache(Cache)
+ TemplatePath := ResourcesPath . "\" . Template ;set the path of the template
+ PagePath := TemplatePath . "\index.html" ;set the path of the page template
+ StylesheetPath := TemplatePath . "\style.css" ;set the path of the stylesheet
+ ValidateOptions() ;validate the given options
+ Results := SearchForum(ForumUsername,SearchEnglishForum,SearchGermanForum)
+ If UseCache
+ {
+  FileRead, Cache, %ResourcesPath%\Cache.txt ;read the page cache
+  Cache := ProcessCache(Cache)
+ }
+ If SortEntries
+  Results := SortByTitle(Results)
+ ;wip: do something with the results here
+ ExitApp
 }
-If SortEntries
- Results := SortByTitle(Results)
-;wip: do something with the results here
-ExitApp
 
 ;searches the AutoHotkey forums for scripts posted by a specified forum user
 SearchForum(ForumUsername,SearchEnglishForum,SearchGermanForum)

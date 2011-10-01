@@ -163,17 +163,14 @@ ValidateOptions()
   ExitApp, 1
  }
 
- FileRead, Stylesheet, %StylesheetPath% ;read the stylesheet
- If ErrorLevel ;stylesheet could not be read
- {
-  MsgBox, 16, Error, Could not find stylesheet:`n`n"%StylesheetPath%"
-  ExitApp, 1
- }
-
  FileRead, PageTemplate, %PagePath% ;read the stylesheet
  If ErrorLevel ;stylesheet could not be read
  {
   MsgBox, 16, Error, Could not find page template:`n`n"%PagePath%"
   ExitApp, 1
  }
+
+ FileRead, Stylesheet, %StylesheetPath% ;read the stylesheet
+ If ErrorLevel ;stylesheet could not be read
+  Stylesheet := "" ;use a blank stylesheet
 }
