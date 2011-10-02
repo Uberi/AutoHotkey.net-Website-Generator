@@ -1,15 +1,34 @@
 #NoEnv
 
+/*
+Copyright 2011 Anthony Zhang <azhang9@gmail.com>
+
+This file is part of AutoHotkey.net Website Generator. Source code is available at <https://github.com/Uberi/AutoHotkey.net-Website-Generator>.
+
+AutoHotkey.net Website Generator is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 Template = 
 (
 <html>
  <head>
   <title>This is a title</title>
  </head>
- <body><ahk_repeat>
-  <p><span>Hello</span>, World!</p>
+ <body>
+  <ahk_repeat><p><span>Hello</span>, World!</p>
   <ahk_author>
-  <ahk_for_each Script Attrib>Test <ahk_script_index></ahk_for_each>
+  <ahk_for_each>Test <ahk_script_index></ahk_for_each>
  </ahk_repeat></body>
 </html>
 )
@@ -21,10 +40,8 @@ MsgBox % ~n//~0
 
 TemplatePage(Template)
 {
- TemplateTags := Object("ahk_author",Object("Matched",0
-   ,"Process",Func("TemplateProcessAuthor"))
-  ,"ahk_script_index",Object("Matched",0
-   ,"Process",Func("TemplateProcessIndex"))
+ TemplateTags := Object("ahk_script",Object("Matched",0
+   ,"Process",Func("TemplateProcessScript"))
   ,"ahk_for_each",Object("Matched",1
    ,"Process",Func("TemplateProcessForEach"))
   ,"ahk_repeat",Object("Matched",1
@@ -82,15 +99,21 @@ TemplateAttributes(Attributes,AttributePattern)
  Result := Object()
  While, Position := RegExMatch(Attributes,AttributePattern,Output,Position) ;loop over each tag attribute
  {
-  Position += StrLen(Output)
-  Result[Output1] := (Output2 != "") ? Output2 : ((Output3 != "") ? Output3 : Output4)
+  Position += StrLen(Output) ;move past the current attribute
+  Result[Output1] := (Output2 != "") ? Output2 : ((Output3 != "") ? Output3 : Output4) ;set the attribute in the result object
  }
  Return, Result
 }
 
-TemplateProcessAuthor(This,Attributes)
+TemplateProcessScript(This,Attributes)
 {
- Return, "[Uberi]"
+ global ForumUsername
+ ScriptProperties := Object("Author",ForumUsername)
+ For Key In Attributes
+ {
+  If ObjHasKey(ScriptProperties,Key)
+   Return, ScriptProperties[Key]
+ }
 }
 
 TemplateProcessIndex(This,Attributes)
@@ -100,10 +123,37 @@ TemplateProcessIndex(This,Attributes)
 
 TemplateProcessForEach(This,Attributes,TagContents)
 {
- Return, "{" . TagContents . "}"
+ Result := ""
+ For Index In GetResults()
+  Result .= TagContents
+ Return, Result
 }
 
 TemplateProcessRepeat(This,Attributes,TagContents)
 {
- Return, "{repeat " . Attributes.Times . " times: " . TagContents . "}"
+ RepeatCount := 1, Result := ""
+ For Key In Attributes
+ {
+  If Key Is Integer
+  {
+   RepeatCount := Key
+   Break
+  }
+ }
+ Loop, %RepeatCount%
+  Result .= TagContents
+ Return, Result
+}
+
+GetResults()
+{
+ global ForumUsername, SearchEnglishForum, SearchGermanForum
+ static Result
+ If !IsObject(Result)
+ {
+  Result := SearchForum(ForumUsername,SearchEnglishForum,SearchGermanForum)
+  If SortEntries
+   Result := SortByTitle(Result)
+ }
+ Return, Result
 }

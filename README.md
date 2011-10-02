@@ -43,25 +43,25 @@ Options
 -------
 
 ### Credentials
-_ForumUsername_ - The forum username to generate the website for.
-_AutoHotkeyNetUsername_ - The AutoHotkey.net account username. Leave blank if it is the same as the forum username.
-_AutoHotkeyNetPassword_ - The AutoHotkey.net account password. Necessary only if _UploadWebsite_ is set.
+* _ForumUsername_ - The forum username to generate the website for.
+* _AutoHotkeyNetUsername_ - The AutoHotkey.net account username. Leave blank if it is the same as the forum username.
+* _AutoHotkeyNetPassword_ - The AutoHotkey.net account password. Necessary only if _UploadWebsite_ is set.
 
 ### Behavior
-_ShowGUI_ - Show the configuration GUI on startup.
-_UploadWebsite_ - Upload the website to AutoHotkey.net after it has been generated.
-_SearchEnglishForum_ - Search the English AutoHotkey Forums for posts.
-_SearchGermanForum_ - Search the German AutoHotkey Forums for posts.
-_UseCache_ - Use the information cache to avoid downloading unnecessary data.
+* _ShowGUI_ - Show the configuration GUI on startup.
+* _UploadWebsite_ - Upload the website to AutoHotkey.net after it has been generated.
+* _SearchEnglishForum_ - Search the English AutoHotkey Forums for posts.
+* _SearchGermanForum_ - Search the German AutoHotkey Forums for posts.
+* _UseCache_ - Use the information cache to avoid downloading unnecessary data.
 
 ### Appearance
-_Stylesheet_ - The stylesheet to use for the generated website, without the ".css" extension.
-_SortPages_ - Whether or not to sort the website entries alphabetically. If not set, the script will sort by the time of the last update.
+* _Stylesheet_ - The stylesheet to use for the generated website, without the ".css" extension.
+* _SortPages_ - Whether or not to sort the website entries alphabetically. If not set, the script will sort by the time of the last update.
 
 ### Output
-_OutputDirectory_ - The local directory to save the generated website.
-_InlineCSS_ - Inline the CSS stylesheet within the HTML page. Useful for making websites self contained.
-_RelativeLinks_ - Rewrite links to make them relative to the webpage if possible.
-_DownloadResources_ - Download resources such as scripts and images to the website directory, to make the generated website self contained.
+* _OutputDirectory_ - The local directory to save the generated website.
+* _InlineCSS_ - Inline the CSS stylesheet within the HTML page. Useful for making websites self contained.
+* _RelativeLinks_ - Rewrite links to make them relative to the webpage if possible.
+* _DownloadResources_ - Download resources such as scripts and images to the website directory, to make the generated website self contained.
 
 [AutoHotkey Forums]: http://www.autohotkey.com/forum/

@@ -1,5 +1,24 @@
 #NoEnv
 
+/*
+Copyright 2011 Anthony Zhang <azhang9@gmail.com>
+
+This file is part of AutoHotkey.net Website Generator. Source code is available at <https://github.com/Uberi/AutoHotkey.net-Website-Generator>.
+
+AutoHotkey.net Website Generator is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 ;credentials
 ForumUsername := "Uberi"
 AutoHotkeyNetUsername := ""
@@ -35,24 +54,23 @@ ProcessCommandLineParameters() ;process any command line parameters
 If ShowGUI
  ShowOptionsDialog()
 Else
- Gosub, GenerateWebsite
+ GenerateWebsite()
 Return
 
 GenerateWebsite()
 {
+ global ResourcesPath, Template, TemplatePath, PagePath, StylesheetPath, UseCache, Cache, PageTemplate, Stylesheet
  TemplatePath := ResourcesPath . "\" . Template ;set the path of the template
  PagePath := TemplatePath . "\index.html" ;set the path of the page template
  StylesheetPath := TemplatePath . "\style.css" ;set the path of the stylesheet
  ValidateOptions() ;validate the given options
- Results := SearchForum(ForumUsername,SearchEnglishForum,SearchGermanForum)
  If UseCache
  {
   FileRead, Cache, %ResourcesPath%\Cache.txt ;read the page cache
   Cache := ProcessCache(Cache)
  }
- If SortEntries
-  Results := SortByTitle(Results)
  ;wip: do something with the results here
+ TemplatePage(PageTemplate)
  ExitApp
 }
 
