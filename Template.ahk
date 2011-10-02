@@ -38,6 +38,7 @@ ExitApp
 n:=-4
 MsgBox % ~n//~0
 
+;parses an HTML template and processes any template tags that are present
 TemplatePage(Template)
 {
  TemplateTags := Object("ahk_script",Object("Matched",0
@@ -93,6 +94,7 @@ TemplatePage(Template)
  Return, Result . SubStr(Template,Position1) ;return the resulting page with the last section appended
 }
 
+;parses the template tag attributes into an object
 TemplateAttributes(Attributes,AttributePattern)
 {
  Position := 1 ;initialize variables
@@ -108,7 +110,13 @@ TemplateAttributes(Attributes,AttributePattern)
 TemplateProcessScript(This,Attributes)
 {
  global ForumUsername
- ScriptProperties := Object("Author",ForumUsername)
+ ScriptProperties := Object("Author",ForumUsername
+  ,"Fragment","<_ahk Fragment>"
+  ,"Title","<_ahk Title>"
+  ,"Image","<_ahk Image>"
+  ,"Description","<_ahk Description>"
+  ,"Topic","<_ahk Topic>"
+  ,"Source","<_ahk Source>")
  For Key In Attributes
  {
   If ObjHasKey(ScriptProperties,Key)
@@ -145,15 +153,50 @@ TemplateProcessRepeat(This,Attributes,TagContents)
  Return, Result
 }
 
-GetResults()
+;retrieve the results of searching the forum
+GetResults(TypeFilter = "")
 {
  global ForumUsername, SearchEnglishForum, SearchGermanForum
- static Result
- If !IsObject(Result)
+ static Results
+ If !IsObject(Results)
  {
-  Result := SearchForum(ForumUsername,SearchEnglishForum,SearchGermanForum)
+  Results := SearchForum(ForumUsername,SearchEnglishForum,SearchGermanForum)
   If SortEntries
-   Result := SortByTitle(Result)
+   Results := SortByTitle(Results)
+ }
+ If (TypeFilter != "") ;process the script type filter if given
+ {
+  Filtered := Object()
+  For Index, Result In Results
+  {
+   If (DetectTopicCategory(Result.Title,Result.Description) = TypeFilter) ;wip: these fields are not available until the topic itself is parsed
+    ObjInsert(Filtered,Result)
+  }
+  Return, Filtered
+ }
+ Return, Result
+}
+
+;sorts an array of results by title
+SortByTitle(InputObject)
+{
+ MaxIndex := ObjMaxIndex(InputObject), (MaxIndex = "") ? (MaxIndex := 0) : ""
+ If (MaxIndex < 2)
+  Return, InputObject
+ Middle := MaxIndex >> 1, SortLeft := Object(), SortRight := Object()
+ Loop, %Middle%
+  ObjInsert(SortLeft,InputObject[A_Index]), ObjInsert(SortRight,InputObject[Middle + A_Index])
+ If (MaxIndex & 1)
+  ObjInsert(SortRight,InputObject[MaxIndex])
+ SortLeft := SortByTitle(SortLeft), SortRight := SortByTitle(SortRight), MaxRight := MaxIndex - Middle, LeftIndex := 1, RightIndex := 1, Result := Object()
+ Loop, %MaxIndex%
+ {
+  If (LeftIndex > Middle)
+   ObjInsert(Result,SortRight[RightIndex]), RightIndex ++
+  Else If ((RightIndex > MaxRight) || (SortLeft[LeftIndex].Title < SortRight[RightIndex].Title))
+   ObjInsert(Result,SortLeft[LeftIndex]), LeftIndex ++
+  Else
+   ObjInsert(Result,SortRight[RightIndex]), RightIndex ++
  }
  Return, Result
 }

@@ -97,30 +97,6 @@ SearchForum(ForumUsername,SearchEnglishForum,SearchGermanForum)
  Return, Results
 }
 
-;sorts an array of results by title
-SortByTitle(InputObject)
-{
- MaxIndex := ObjMaxIndex(InputObject), (MaxIndex = "") ? (MaxIndex := 0) : ""
- If (MaxIndex < 2)
-  Return, InputObject
- Middle := MaxIndex >> 1, SortLeft := Object(), SortRight := Object()
- Loop, %Middle%
-  ObjInsert(SortLeft,InputObject[A_Index]), ObjInsert(SortRight,InputObject[Middle + A_Index])
- If (MaxIndex & 1)
-  ObjInsert(SortRight,InputObject[MaxIndex])
- SortLeft := SortByTitle(SortLeft), SortRight := SortByTitle(SortRight), MaxRight := MaxIndex - Middle, LeftIndex := 1, RightIndex := 1, Result := Object()
- Loop, %MaxIndex%
- {
-  If (LeftIndex > Middle)
-   ObjInsert(Result,SortRight[RightIndex]), RightIndex ++
-  Else If ((RightIndex > MaxRight) || (SortLeft[LeftIndex].Title < SortRight[RightIndex].Title))
-   ObjInsert(Result,SortLeft[LeftIndex]), LeftIndex ++
-  Else
-   ObjInsert(Result,SortRight[RightIndex]), RightIndex ++
- }
- Return, Result
-}
-
 ShowObject(ShowObject,Padding = "")
 {
  ListLines, Off

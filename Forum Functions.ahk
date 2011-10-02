@@ -31,6 +31,7 @@ For Index, Result In Search
 MsgBox % TopicList
 */
 
+;searches the AutoHotkey forum and returns the results in the form of an object
 ForumSearch(BaseURL = "",Keywords = "",Author = "",ForumIndex = 0,ResultLimit = 0,SearchAny = 0,PreviousDays = 0)
 {
  If !ForumIndex ;search all available forums if a specific forum is not specified
@@ -56,6 +57,7 @@ ForumSearch(BaseURL = "",Keywords = "",Author = "",ForumIndex = 0,ResultLimit = 
  Return, Result
 }
 
+;parses a search result page
 ParseSearchResultPage(SearchResult,BaseURL,ByRef Result,ByRef NextPage,ResultLimit)
 {
  SearchResult := SubStr(SearchResult,InStr(SearchResult," class=""forumline""") + 18) ;trim everything up to the main search results table
@@ -112,6 +114,57 @@ ParseSearchResultPage(SearchResult,BaseURL,ByRef Result,ByRef NextPage,ResultLim
   ObjInsert(Result,RowResult)
  }
  Return, 1
+}
+
+;retrieves information about a given forum topic
+ForumGetTopicInfo(URL)
+{
+ WebRequest := ComObjCreate("WinHttp.WinHttpRequest.5.1"), WebRequest.Open("GET",URL)
+ WebRequest.Send(), ForumTopic := WebRequest.ResponseText, WebRequest := ""
+
+ Result := Object()
+
+ ;extract the title of the topic
+ Title := SubStr(ForumTopic,InStr(ForumTopic,"<title>") + 7) ;trim up to the topic title
+ Title := SubStr(Title,1,InStr(Title,"</title>") - 1) ;trim off everything after the topic title
+ Result.Title := Title ;set the title field of the result
+
+ ;extract the author of the topic
+ RegExMatch(ForumTopic,"iS)<span class=""name"">.*?<b>([^<]*)</b>",Output) ;match the author field
+ Result.Author := Output1
+
+ ;extract the first post of the topic
+ ForumTopic := SubStr(ForumTopic,InStr(ForumTopic,"<span class=""postbody"">") + 23) ;trim up to the contents of the first post
+ ForumTopic := SubStr(ForumTopic,1,InStr(ForumTopic," class=""row1""") - 1) ;trim everything after the row immediately below the first post
+
+ ;remove the signature if present
+ Position := InStr(ForumTopic,"_________________",1,0) ;find a series of underscores, starting from the right
+ If Position ;signature block found
+  ForumTopic := SubStr(ForumTopic,1,Position - 1) ;trim the signature off of the end of the post
+
+ ;extract a description of the topic
+ Temp1 := SubStr(ForumTopic,1,InStr(ForumTopic,"<br ") - 1) ;extract the first paragraph of the post
+ Temp1 := ConvertEntities(Temp1) ;convert any HTML entities present into their literal equivelants
+ StringReplace, Temp1, Temp1, `r,, All ;remove all carriage returns
+ StringReplace, Temp1, Temp1, `n,, All ;remove all newlines
+ Temp1 := Trim(Temp1) ;remove leading and trailing whitespace
+ Temp1 := RegExReplace(Temp1,"iS)<a\s.*?href=""([^""]*)""[^>]*>","<a href=""$1"" class=""link"">") ;normalize hyperlinks ;wip: if this is a link to a topic, search the topic result list and link to another place in this website?
+ Temp1 := RegExReplace(Temp1,"S)\.\K[^\.]+:$") ;if the last sentence ends with a colon, and there are sentences before it, remove the last sentence
+ Temp1 := RegExReplace(Temp1,"S)^[^\.]*\K:$",".") ;if the description ends with a colon, and contains only one sentence, replace the colon with a period
+ If (SubStr(Temp1,0) != ".") ;insert a period at the end of the description if one is not present
+  Temp1 .= "."
+ Temp1 := RegExReplace(Temp1,"iS)<(?!/?a\b)[^>]*>") ;remove any HTML tags excluding hyperlinks that are still present
+ Result.Description := Temp1 ;set the description field of the result
+
+ ;extract an image if present
+ If RegExMatch(ForumTopic,"iS)<img\s.*?src=""([^""]*)""",Output)
+  Result.Image := Output1 ;set the image field of the result
+
+ ;extract a download link if present
+ If RegExMatch(ForumTopic,"iS)<a\s.*?href=""([^""]*\.(?:ahk|exe))""",Output)
+  Result.Source := Output1 ;set the image field of the result
+
+ Return, Result
 }
 
 URLEncode(URL)
