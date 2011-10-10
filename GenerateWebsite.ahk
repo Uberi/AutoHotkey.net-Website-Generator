@@ -32,7 +32,7 @@ SearchGermanForum := 1
 UseCache := 1
 
 ;appearance
-Template := "Picturesque Green"
+Template := "Picturesque Blue"
 SortEntries := 0
 
 ;output
@@ -69,8 +69,8 @@ GenerateWebsite()
   FileRead, Cache, %ResourcesPath%\Cache.txt ;read the page cache
   Cache := ProcessCache(Cache)
  }
- ;wip: do something with the results here
- TemplatePage(PageTemplate)
+ TemplateInit()
+ MsgBox % Clipboard := TemplatePage(PageTemplate)
  ExitApp
 }
 
@@ -83,7 +83,16 @@ SearchForum(ForumUsername,SearchEnglishForum,SearchGermanForum)
   For Index, Result In ForumSearch("http://www.autohotkey.com/forum/","",ForumUsername,2) ;search the English AutoHotkey forum for posts by the specified forum user
   {
    If (Result.Author = ForumUsername)
+   {
+    ;download information about the forum topic, and add the information into the result
+    Topic := ForumGetTopicInfo(Result.URL)
+    Result.Description := Topic.Description
+    If ObjHasKey(Topic,"Image")
+     Result.Image := Topic.Image
+    If ObjHasKey(Topic,"Source")
+     Result.Source := Topic.Source
     ObjInsert(Results,Result)
+   }
   }
  }
  If SearchGermanForum
@@ -91,7 +100,16 @@ SearchForum(ForumUsername,SearchEnglishForum,SearchGermanForum)
   For Index, Result In ForumSearch("http://de.autohotkey.com/forum/","",ForumUsername,2) ;search the German AutoHotkey forum for posts by the specified forum user
   {
    If (Result.Author = ForumUsername)
+   {
+    ;download information about the forum topic, and add the information into the result
+    Topic := ForumGetTopicInfo(Result.URL)
+    Result.Description := Topic.Description
+    If ObjHasKey(Topic,"Image")
+     Result.Image := Topic.Image
+    If ObjHasKey(Topic,"Source")
+     Result.Source := Topic.Source
     ObjInsert(Results,Result)
+   }
   }
  }
  Return, Results

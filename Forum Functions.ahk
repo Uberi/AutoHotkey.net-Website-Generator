@@ -80,6 +80,9 @@ ParseSearchResultPage(SearchResult,BaseURL,ByRef Result,ByRef NextPage,ResultLim
  SearchResult := SubStr(SearchResult,1,InStr(SearchResult,"</table>") - 1) ;trim everything after the navigation table
  SearchResult := SubStr(SearchResult,1,InStr(SearchResult,"<tr>",0,0) - 1) ;trim off the last row of the table
 
+ If InStr(SearchResult,"<td align=""center"">") ;no results found, error message shown
+  Return, 0
+
  SearchResult := RegExReplace(SearchResult,"iS)<(?:tr|td|img)[^>]*>|\n|\r") ;remove opening table row tags, opening table data tags, and newlines
  StringReplace, SearchResult, SearchResult, </tr>, `n, All ;replace closing table row tags with newlines
  SearchResult := Trim(SearchResult," `t`n") ;trim whitespace and newlines from the beginning and the end
@@ -148,12 +151,14 @@ ForumGetTopicInfo(URL)
  StringReplace, Temp1, Temp1, `r,, All ;remove all carriage returns
  StringReplace, Temp1, Temp1, `n,, All ;remove all newlines
  Temp1 := Trim(Temp1) ;remove leading and trailing whitespace
- Temp1 := RegExReplace(Temp1,"iS)<a\s.*?href=""([^""]*)""[^>]*>","<a href=""$1"" class=""link"">") ;normalize hyperlinks ;wip: if this is a link to a topic, search the topic result list and link to another place in this website?
- Temp1 := RegExReplace(Temp1,"S)\.\K[^\.]+:$") ;if the last sentence ends with a colon, and there are sentences before it, remove the last sentence
+ Temp1 := RegExReplace(Temp1,"S)\.\K[^\.<>]+:$") ;if the last sentence ends with a colon, and there are sentences before it, remove the last sentence
  Temp1 := RegExReplace(Temp1,"S)^[^\.]*\K:$",".") ;if the description ends with a colon, and contains only one sentence, replace the colon with a period
  If (SubStr(Temp1,0) != ".") ;insert a period at the end of the description if one is not present
   Temp1 .= "."
- Temp1 := RegExReplace(Temp1,"iS)<(?!/?a\b)[^>]*>") ;remove any HTML tags excluding hyperlinks that are still present
+ Temp1 := RegExReplace(Temp1,"iS)<a\s.*?href=""([^""]*)""[^>]*>([^<]+)</a>","<> href=""$1"" class=""link"">$2</>") ;normalize hyperlinks and temporarily change them into invalid tags ;wip: if this is a link to a topic, search the topic result list and link to another place in the generated website?
+ Temp1 := RegExReplace(Temp1,"iS)<(?!/?>)[^>]*>") ;remove any HTML tags excluding hyperlinks that are still present
+ StringReplace, Temp1, Temp1, <>, <a, All ;return opening hyperlink tags to their original form
+ StringReplace, Temp1, Temp1, </>, </a>, All ;return closing hyperlink tags to their original form
  Result.Description := Temp1 ;set the description field of the result
 
  ;extract an image if present
@@ -161,7 +166,7 @@ ForumGetTopicInfo(URL)
   Result.Image := Output1 ;set the image field of the result
 
  ;extract a download link if present
- If RegExMatch(ForumTopic,"iS)<a\s.*?href=""([^""]*\.(?:ahk|exe))""",Output)
+ If RegExMatch(ForumTopic,"iS)<a\s.*?href=""([^""]*\.(?:ahk|exe))""[^>]*>[\w\s\.-]+</a>",Output)
   Result.Source := Output1 ;set the image field of the result
 
  Return, Result
@@ -188,4 +193,10 @@ ConvertEntities(HTML)
   StringReplace, HTML, HTML, &%Entity%`;, % Chr(EntityCode), All
  }
  Return, HTML
+}
+
+HTMLEscape(String)
+{
+ Transform, Escaped, HTML, %String%
+ Return, Escaped
 }
