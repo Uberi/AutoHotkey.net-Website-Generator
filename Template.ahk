@@ -1,5 +1,8 @@
 #NoEnv
 
+#Warn All
+#Warn LocalSameAsGlobal, Off
+
 /*
 Copyright 2011 Anthony Zhang <azhang9@gmail.com>
 
@@ -26,9 +29,9 @@ Template =
   <title>This is a title</title>
  </head>
  <body>
-  <ahk_repeat><p><span>Hello</span>, World!</p>
-  <ahk_author>
-  <ahk_for_each>Test <ahk_script_index></ahk_for_each>
+  <ahk_repeat 2><p><span><ahk_repeat 3>Hello</ahk_repeat></span>, World!</p>
+  <ahk_script Author>
+  <ahk_for_each>Test <ahk_script Index></ahk_for_each>
  </ahk_repeat></body>
 </html>
 )
@@ -41,64 +44,61 @@ MsgBox % ~n//~0
 ;parses an HTML template and processes any template tags that are present
 TemplatePage(Template)
 {
- TemplateTags := Object("ahk_script",Object("Matched",0
-   ,"Process",Func("TemplateProcessScript"))
-  ,"ahk_for_each",Object("Matched",1
-   ,"Process",Func("TemplateProcessForEach"))
-  ,"ahk_repeat",Object("Matched",1
-   ,"Process",Func("TemplateProcessRepeat")))
+ SingleTemplateTags := Object("ahk_script",Func("TemplateProcessScript"))
+ MatchedTemplateTags := Object("ahk_for_each",Func("TemplateProcessForEach")
+  ,"ahk_repeat",Func("TemplateProcessRepeat"))
 
  ;build up the pattern matching template tags
- AttributePattern := "\s+([\w-]+)(?:\s*=\s*(?:""([^""]*)""|'([^']*)'|([^\s""'``=<>]*)))?"
+ AttributePattern := "\s+([\w-]+)(?:\s*=\s*(?:""([^""]*)""|'([^']*)'|([^\s""'``=<>]*)))?" ;pattern matching a single tag attribute
  TagPattern := "iS)<("
- For Key, Value In TemplateTags
-  TagPattern .= (Value.Matched ? "/?" : "") . Key . "|" ;insert tag names to the pattern, as well as the closing tag pattern if necessary
+ For Key In SingleTemplateTags
+  TagPattern .= Key . "|" ;insert tag name into the pattern
+ For Key In MatchedTemplateTags
+  TagPattern .= Key . "|" ;insert opening and closing tag names into the pattern
  TagPattern := SubStr(TagPattern,1,-1) . ")((?:" . AttributePattern . ")*)\s*>"
 
- Stack := Array(), StackIndex := 0 ;initialize stack
- Position := 1, Position1 := 1, Result := "", ResultPosition := 0 ;initialize variables
+ Stack := Array(), StackIndex := 0, Position := 1, Position1 := 1, Result := "" ;initialize variables
  While, Position := RegExMatch(Template,TagPattern,Output,Position) ;loop over each opening or closing template HTML tag
  {
   Result .= SubStr(Template,Position1,Position - Position1) ;append the sections of the template between template tags
-  ResultPosition += Position - Position1 ;update the current position within the length
 
   Position += StrLen(Output), Position1 := Position ;move past the tag, store the position
-  If (SubStr(Output1,1,1) = "/") ;closing HTML tag
+  If ObjHasKey(MatchedTemplateTags,Output1) ;tag is to be matched
   {
-   Output1 := SubStr(Output1,2) ;trim the slash from the beginning of the string
-
-   ;handle mismatched tags by searching the stack for the opening tag and closing any opened tags above the found entry, or skipping over the closing tag if that fails
-   SearchIndex := StackIndex
-   While, SearchIndex > 0 && Output1 != Stack[SearchIndex].TagName ;iterate through each currently open tag
-    SearchIndex -- ;close the tag, lower the index to search
-   If (SearchIndex = 0) ;tag matching by searching the stack failed
-    Continue ;skip over mismatched tag
-
-   While, StackIndex >= SearchIndex ;add closing tags
-   {
-    Temp1 := Stack[StackIndex].Position ;retrieve the position of the matching opening tag
-    TagContents := SubStr(Result,Temp1 + 1,ResultPosition - Temp1) ;retrieve the contents of the tag
-    TagContents := TemplateTags[Output1].Process(TemplateAttributes(Stack[StackIndex].Attributes,AttributePattern),TagContents) ;process the template tag
-    Result := SubStr(Result,1,Temp1) . TagContents, ResultPosition := Temp1 + StrLen(TagContents) ;insert the processed result into the processed page
-    ObjRemove(Stack,StackIndex,""), StackIndex -- ;pop the tag from the stack
-   }
+   MatchedPosition := TemplateMatchTag(Template,Position,Output1,AttributePattern,TagContents)
+   If (MatchedPosition = 0) ;skip over mismatched tag
+    Continue
+   Result .= MatchedTemplateTags[Output1](TemplateAttributes(Output2,AttributePattern),TagContents)
+   Position := MatchedPosition, Position1 := MatchedPosition ;move to the end of the closing tag
   }
-  Else If TemplateTags[Output1].Matched ;tag is to be matched
-    StackIndex ++, Stack[StackIndex] := Object("TagName",Output1,"Attributes",Output2,"Position",ResultPosition) ;push the tag, its attributes, and the current position in the result onto the stack
   Else ;self contained tag
-  {
-   TagContents := TemplateTags[Output1].Process(TemplateAttributes(Output2,AttributePattern))
-   Result .= TagContents, ResultPosition += StrLen(TagContents) ;process the template tag
-  }
+   Result .= SingleTemplateTags[Output1](TemplateAttributes(Output2,AttributePattern)) ;process the template tag
  }
  Return, Result . SubStr(Template,Position1) ;return the resulting page with the last section appended
+}
+
+;matches a template tag
+TemplateMatchTag(ByRef Template,Position,TagName,AttributePattern,ByRef TagContents)
+{
+ TagDepth := 1, Position1 := Position
+ While, (TagDepth > 0) && (Position := RegExMatch(Template,"iS)<(/?)" . TagName . "(?:" . AttributePattern . ")*\s*>",Output,Position))
+ {
+  Position += StrLen(Output)
+  If (Output1 = "") ;opening tag
+   TagDepth ++
+  Else ;closing tag
+   TagDepth --
+ }
+ If (TagDepth > 0) ;tag could not be matched
+  Return, 0
+ TagContents := SubStr(Template,Position1,Position - (Position1 + StrLen(Output)))
+ Return, Position
 }
 
 ;parses the template tag attributes into an object
 TemplateAttributes(Attributes,AttributePattern)
 {
- Position := 1 ;initialize variables
- Result := Object()
+ Position := 1, Result := Object() ;initialize variables
  While, Position := RegExMatch(Attributes,AttributePattern,Output,Position) ;loop over each tag attribute
  {
   Position += StrLen(Output) ;move past the current attribute
@@ -109,31 +109,32 @@ TemplateAttributes(Attributes,AttributePattern)
 
 TemplateProcessScript(This,Attributes)
 {
- global ForumUsername
- ScriptProperties := Object("Author",ForumUsername
-  ,"Fragment","<_ahk Fragment>"
-  ,"Title","<_ahk Title>"
-  ,"Image","<_ahk Image>"
-  ,"Description","<_ahk Description>"
-  ,"Topic","<_ahk Topic>"
-  ,"Source","<_ahk Source>")
+ global TemplateScriptProperties
+ TemplateProperties := Object("Author","Uberi") ;wip: use ForumUsername here
  For Key In Attributes
  {
-  If ObjHasKey(ScriptProperties,Key)
-   Return, ScriptProperties[Key]
+  If ObjHasKey(TemplateProperties,Key)
+   Return, TemplateProperties[Key]
+  If ObjHasKey(TemplateScriptProperties,Key)
+   Return, TemplateScriptProperties[Key]
  }
-}
-
-TemplateProcessIndex(This,Attributes)
-{
- Return, 1
 }
 
 TemplateProcessForEach(This,Attributes,TagContents)
 {
+ global TemplateScriptProperties
  Result := ""
- For Index In GetResults()
-  Result .= TagContents
+ ;For Index In GetResults()
+ {
+  TemplateScriptProperties := Object("Index",A_Index
+   ,"Fragment","<_ahk Fragment>"
+   ,"Title","<_ahk Title>"
+   ,"Image","<_ahk Image>"
+   ,"Description","<_ahk Description>"
+   ,"Topic","<_ahk Topic>"
+   ,"Source","<_ahk Source>")
+  Result .= TemplatePage(TagContents)
+ }
  Return, Result
 }
 
@@ -149,10 +150,11 @@ TemplateProcessRepeat(This,Attributes,TagContents)
   }
  }
  Loop, %RepeatCount%
-  Result .= TagContents
+  Result .= TemplatePage(TagContents)
  Return, Result
 }
 
+/*
 ;retrieve the results of searching the forum
 GetResults(TypeFilter = "")
 {
