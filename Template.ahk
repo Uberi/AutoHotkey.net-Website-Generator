@@ -22,6 +22,8 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+;wip: use global prefixes
+
 Template = 
 (
 <html>
@@ -35,18 +37,20 @@ Template =
  </ahk_repeat></body>
 </html>
 )
+TemplateInit()
 MsgBox % TemplatePage(Template)
 ExitApp
 
 n:=-4
 MsgBox % ~n//~0
 
-;parses an HTML template and processes any template tags that are present
-TemplatePage(Template)
+;initializes resources needed by the templating engine
+TemplateInit()
 {
- SingleTemplateTags := Object("ahk_script",Func("TemplateProcessScript"))
+ global SingleTemplateTags, MatchedTemplateTags, AttributePattern, TagPattern
+ SingleTemplateTags := Object("ahk_script",Func("TemplateProcessScript")) ;self contained tag
  MatchedTemplateTags := Object("ahk_for_each",Func("TemplateProcessForEach")
-  ,"ahk_repeat",Func("TemplateProcessRepeat"))
+  ,"ahk_repeat",Func("TemplateProcessRepeat")) ;matched tag
 
  ;build up the pattern matching template tags
  AttributePattern := "\s+([\w-]+)(?:\s*=\s*(?:""([^""]*)""|'([^']*)'|([^\s""'``=<>]*)))?" ;pattern matching a single tag attribute
@@ -56,8 +60,14 @@ TemplatePage(Template)
  For Key In MatchedTemplateTags
   TagPattern .= Key . "|" ;insert opening and closing tag names into the pattern
  TagPattern := SubStr(TagPattern,1,-1) . ")((?:" . AttributePattern . ")*)\s*>"
+}
 
- Stack := Array(), StackIndex := 0, Position := 1, Position1 := 1, Result := "" ;initialize variables
+;parses an HTML template and processes any template tags that are present
+TemplatePage(Template)
+{
+ global SingleTemplateTags, MatchedTemplateTags, AttributePattern, TagPattern
+
+ Position := 1, Position1 := 1, Result := "" ;initialize variables
  While, Position := RegExMatch(Template,TagPattern,Output,Position) ;loop over each opening or closing template HTML tag
  {
   Result .= SubStr(Template,Position1,Position - Position1) ;append the sections of the template between template tags
@@ -65,21 +75,22 @@ TemplatePage(Template)
   Position += StrLen(Output), Position1 := Position ;move past the tag, store the position
   If ObjHasKey(MatchedTemplateTags,Output1) ;tag is to be matched
   {
-   MatchedPosition := TemplateMatchTag(Template,Position,Output1,AttributePattern,TagContents)
+   MatchedPosition := TemplateMatchTag(Template,Position,Output1,TagContents)
    If (MatchedPosition = 0) ;skip over mismatched tag
     Continue
-   Result .= MatchedTemplateTags[Output1](TemplateAttributes(Output2,AttributePattern),TagContents)
+   Result .= MatchedTemplateTags[Output1](TemplateAttributes(Output2),TagContents)
    Position := MatchedPosition, Position1 := MatchedPosition ;move to the end of the closing tag
   }
   Else ;self contained tag
-   Result .= SingleTemplateTags[Output1](TemplateAttributes(Output2,AttributePattern)) ;process the template tag
+   Result .= SingleTemplateTags[Output1](TemplateAttributes(Output2)) ;process the template tag
  }
  Return, Result . SubStr(Template,Position1) ;return the resulting page with the last section appended
 }
 
 ;matches a template tag
-TemplateMatchTag(ByRef Template,Position,TagName,AttributePattern,ByRef TagContents)
+TemplateMatchTag(ByRef Template,Position,TagName,ByRef TagContents)
 {
+ global AttributePattern
  TagDepth := 1, Position1 := Position
  While, (TagDepth > 0) && (Position := RegExMatch(Template,"iS)<(/?)" . TagName . "(?:" . AttributePattern . ")*\s*>",Output,Position))
  {
@@ -96,8 +107,9 @@ TemplateMatchTag(ByRef Template,Position,TagName,AttributePattern,ByRef TagConte
 }
 
 ;parses the template tag attributes into an object
-TemplateAttributes(Attributes,AttributePattern)
+TemplateAttributes(Attributes)
 {
+ global AttributePattern
  Position := 1, Result := Object() ;initialize variables
  While, Position := RegExMatch(Attributes,AttributePattern,Output,Position) ;loop over each tag attribute
  {
