@@ -22,25 +22,7 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-;wip: a conditional template tag: <ahk_if></ahk_if>
-
-Template = 
-(
-<html>
- <head>
-  <title>This is a title</title>
- </head>
- <body>
-  Last updated: <ahk_script Time>, <ahk_script Date>
-  <ahk_repeat 2><p><span><ahk_repeat 3>Hello</ahk_repeat></span>, World!</p>
-  <ahk_script Author>
-  <ahk_for_each>Test <ahk_script Index></ahk_for_each>
- </ahk_repeat></body>
-</html>
-)
-TemplateInit()
-MsgBox % TemplatePage(Template)
-ExitApp
+;wip: cache support
 
 n:=-4
 MsgBox % ~n//~0
@@ -51,7 +33,8 @@ TemplateInit()
  global ForumUsername, Template, TemplateSingleTags, TemplateMatchedTags, TemplateProperties, TemplateScriptProperties, TemplateAttributePattern, TemplateTagPattern
  TemplateSingleTags := Object("ahk_script",Func("TemplateProcessScript")) ;self contained tag
  TemplateMatchedTags := Object("ahk_for_each",Func("TemplateProcessForEach")
-  ,"ahk_repeat",Func("TemplateProcessRepeat")) ;matched tag
+  ,"ahk_repeat",Func("TemplateProcessRepeat")
+  ,"ahk_if",Func("TemplateProcessIf")) ;matched tag
 
  ;template properties
  FormatTime, Temp1,, Time
@@ -187,6 +170,19 @@ TemplateProcessRepeat(This,Attributes,TagContents)
  Loop, %RepeatCount%
   Result .= TemplatePage(TagContents)
  Return, Result
+}
+
+TemplateProcessIf(This,Attributes,TagContents)
+{
+ global TemplateProperties, TemplateScriptProperties
+ For Key In Attributes
+ {
+  If (ObjHasKey(TemplateProperties,Key) && TemplateProperties[Key] != "") ;key is present and not blank in template properties
+   Return, TagContents
+  If (ObjHasKey(TemplateScriptProperties,Key) && TemplateScriptProperties[Key] != "") ;key is present and not blank in script properties
+   Return, TagContents
+  Return
+ }
 }
 
 ;generates a unique URL fragment from a title

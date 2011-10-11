@@ -129,8 +129,21 @@ ShowOptionsDialog()
  ExitApp
 
  OptionsDialogSubmit:
+ ;submit variables and destroy the GUI
  Gui, Submit
+ Gui, Destroy
+
+ ;create and show the progress dialog
+ Gui, Font, s18
+ Gui, Add, Text, x2 y0 w460 h30 +Center, Generating
+ Gui, Add, Progress, x10 y40 w450 h20 vGenerationProgress -Smooth 0x8, 0
+ Gui, Show, w470 h70, Website Generator
+ SetTimer, UpdateProgress, 40
  GenerateWebsite()
+ Return
+
+ UpdateProgress:
+ GuiControl,, GenerationProgress, +1
  Return
 
  EnterUsername:
