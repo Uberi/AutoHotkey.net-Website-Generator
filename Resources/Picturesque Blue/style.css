@@ -35,31 +35,36 @@ div.list
  	color:#EEEEEE;
 }
 
-p#title
+h1
 {
 	position:relative;
 	text-align:right;
 	font-size:5em;
+	font-weight:lighter;
 	top:-0.25em;
 	right:0.1em;
 	padding:0;
+	margin:0;
 	color:white;
 }
 
-p#subtitle
+h2
 {
 	position:relative;
 	text-align:right;
 	font-size:1.5em;
+	font-weight:lighter;
 	top:-1em;
-	right:4em;
+	right:3em;
 	padding:0;
+	margin:0;
 	color:#EEEEEE;
 }
 
-p.section
+h3
 {
- 	font-size:3em;
+	font-size:3em;
+	font-weight:lighter;
 }
 
 ul
@@ -83,6 +88,14 @@ li.entry div { visibility:hidden; }
 li.entry:target div { visibility:visible; }
 
 li.entry:target a.main { background-color:#2098E5; }
+
+a.title
+{
+	text-decoration:none;
+	color:inherit;
+}
+
+a.title:hover { color:#E5E5E5; }
 
 a.main
 {
