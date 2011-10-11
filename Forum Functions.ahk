@@ -172,6 +172,17 @@ ForumGetTopicInfo(URL)
  Return, Result
 }
 
+;detects the category of a given topic
+DetectTopicCategory(Title,Description) ;wip: allow user definitions with regex
+{
+ LibraryKeywords := "Library,Function,Lib,Funktionen"
+ If Title Contains %LibraryKeywords%
+  Return, "Library"
+ If Description Contains %LibraryKeywords%
+  Return, "Library"
+ Return, "Script"
+}
+
 URLEncode(URL)
 {
  StringReplace, URL, URL, `%, `%25, All

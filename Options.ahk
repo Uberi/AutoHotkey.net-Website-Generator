@@ -23,7 +23,7 @@ ProcessCommandLineParameters()
 {
  global
  local ValidParameters, Temp1, Parameter, Position, Option, Value
- ValidParameters := Object("ForumUsername",0,"AutoHotkeyNetUsername",0,"AutoHotkeyNetPassword",0,"ShowGUI",1,"UploadWebsite",1,"SearchEnglishForum",1,"SearchGermanForum",1,"UseCache",1,"Template",0,"SortEntries",1,"OutputDirectory",0,"InlineStylesheet",1,"RelativeLinks",1,"DownloadResources",1) ;a list of parameters and the types they accept (0 for string, 1 for boolean)
+ ValidParameters := Object("ForumUsername",0,"AutoHotkeyNetUsername",0,"AutoHotkeyNetPassword",0,"ShowGUI",1,"UploadWebsite",1,"SearchEnglishForum",1,"SearchGermanForum",1,"UseCache",1,"Template",0,"SortEntries",1,"OutputPath",0,"InlineStylesheet",1,"RelativeLinks",1,"DownloadResources",1) ;a list of parameters and the types they accept (0 for string, 1 for boolean)
  Loop, %0% ;loop through each command line parameter in the form "--OPTION=VALUE"
  {
   Parameter := %A_Index%
@@ -114,7 +114,7 @@ ShowOptionsDialog()
  Gui, Add, CheckBox, x20 y280 w290 h20 vInlineStylesheet Checked%InlineStylesheet%, Include stylesheet inline
  Gui, Add, CheckBox, x20 y300 w290 h20 vRelativeLinks Checked%RelativeLinks%, Rewrite addresses into relative links if possible
  Gui, Add, Text, x340 y260 w90 h20, Output Directory:
- Gui, Add, Edit, x430 y260 w150 h20 vOutputDirectory, %OutputDirectory%
+ Gui, Add, Edit, x430 y260 w150 h20 vOutputPath, %OutputPath%
  Gui, Add, Button, x580 y260 w30 h20 gSelectFolder, ...
  Gui, Add, CheckBox, x340 y300 w270 h20 vDownloadResources Checked%DownloadResources%, Download all resources
 
@@ -140,7 +140,8 @@ ShowOptionsDialog()
  Gui, Show, w470 h70, Website Generator
  SetTimer, UpdateProgress, 40
  GenerateWebsite()
- Return
+ MsgBox, 64, Complete, Website has been successfully generated.
+ ExitApp
 
  UpdateProgress:
  GuiControl,, GenerationProgress, +1
@@ -170,7 +171,7 @@ ShowOptionsDialog()
  Gui, +OwnDialogs
  FileSelectFolder, Temp1,, 3, Select an output folder:
  If !ErrorLevel
-  GuiControl,, OutputDirectory, %Temp1%
+  GuiControl,, OutputPath, %Temp1%
  Return
 
  UploadWebsite:
@@ -183,13 +184,13 @@ ShowOptionsDialog()
 ValidateOptions()
 {
  global
- If !InStr(FileExist(OutputDirectory),"D") ;output directory does not exist
+ If !InStr(FileExist(OutputPath),"D") ;output directory does not exist
  {
-  MsgBox, 16, Error, Invalid output directory:`n`n"%OutputDirectory%"
+  MsgBox, 16, Error, Invalid output directory:`n`n"%OutputPath%"
   ExitApp, 1
  }
- If (SubStr(OutputDirectory,0) = "\") ;remove trailing backslash if present
-  OutputDirectory := SubStr(OutputDirectory,1,-1)
+ If (SubStr(OutputPath,0) = "\") ;remove trailing backslash if present
+  OutputPath := SubStr(OutputPath,1,-1)
 
  If !InStr(FileExist(TemplatePath),"D") ;template directory does not exist
  {
