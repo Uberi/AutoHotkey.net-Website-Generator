@@ -48,7 +48,7 @@ MsgBox % ~n//~0
 ;initializes resources needed by the templating engine
 TemplateInit()
 {
- global ForumUsername, TemplateSingleTags, TemplateMatchedTags, TemplateProperties, TemplateScriptProperties, TemplateAttributePattern, TemplateTagPattern
+ global ForumUsername, Template, TemplateSingleTags, TemplateMatchedTags, TemplateProperties, TemplateScriptProperties, TemplateAttributePattern, TemplateTagPattern
  TemplateSingleTags := Object("ahk_script",Func("TemplateProcessScript")) ;self contained tag
  TemplateMatchedTags := Object("ahk_for_each",Func("TemplateProcessForEach")
   ,"ahk_repeat",Func("TemplateProcessRepeat")) ;matched tag
@@ -58,7 +58,8 @@ TemplateInit()
  FormatTime, Temp2,, ShortDate
  TemplateProperties := Object("Author",ForumUsername
   ,"Time",Temp1
-  ,"Date",Temp2)
+  ,"Date",Temp2
+  ,"Template",Template)
 
  ;current script properties
  TemplateScriptProperties := Object()

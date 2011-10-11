@@ -70,7 +70,18 @@ GenerateWebsite()
   Cache := ProcessCache(Cache)
  }
  TemplateInit()
- MsgBox % Clipboard := TemplatePage(PageTemplate)
+ Result := TemplatePage(PageTemplate)
+
+ ;write the page to the output directory
+ OutputPagePath := OutputDirectory . "\index.html"
+ FileDelete, %OutputPagePath%
+ FileAppend, %Result%, %OutputPagePath%
+
+ ;write the stylesheet to the output directory
+ OutputStylesheetPath := OutputDirectory . "\style.css"
+ FileDelete, %OutputStylesheetPath%
+ FileAppend, %Result%, %OutputStylesheetPath%
+
  ExitApp
 }
 

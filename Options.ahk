@@ -175,6 +175,8 @@ ValidateOptions()
   MsgBox, 16, Error, Invalid output directory:`n`n"%OutputDirectory%"
   ExitApp, 1
  }
+ If (SubStr(OutputDirectory,0) = "\") ;remove trailing backslash if present
+  OutputDirectory := SubStr(OutputDirectory,1,-1)
 
  If !InStr(FileExist(TemplatePath),"D") ;template directory does not exist
  {
