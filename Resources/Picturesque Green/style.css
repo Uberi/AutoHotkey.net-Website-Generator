@@ -137,6 +137,12 @@ a.action:hover, a.action:focus { background-color:#10C600; }
 
 a.action:active { background-color:#10B600; }
 
+a.link { color:#8EFF95; }
+
+a.link:hover, a.link:focus { color:#4EFF65; }
+
+a.link:active { color:#1AEB3D; }
+
 div.info
 {
 	font-size:0.8em;
