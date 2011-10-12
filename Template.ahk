@@ -178,9 +178,9 @@ TemplateProcessIf(This,Attributes,TagContents)
  For Key In Attributes
  {
   If (ObjHasKey(TemplateProperties,Key) && TemplateProperties[Key] != "") ;key is present and not blank in template properties
-   Return, TagContents
+   Return, TemplatePage(TagContents)
   If (ObjHasKey(TemplateScriptProperties,Key) && TemplateScriptProperties[Key] != "") ;key is present and not blank in script properties
-   Return, TagContents
+   Return, TemplatePage(TagContents)
   Return
  }
 }

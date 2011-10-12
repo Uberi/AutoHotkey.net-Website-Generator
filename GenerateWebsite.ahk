@@ -19,6 +19,8 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+;wip: use NoImage.jpg properly if no image was present
+
 ;credentials
 ForumUsername := "Uberi"
 AutoHotkeyNetUsername := ""
@@ -136,10 +138,12 @@ GetTopic(ByRef Result)
  Else ;download information from the forum
  {
   Topic := ForumGetTopicInfo(Result.URL)
+  Cache[Result.URL] := Object()
   If ObjHasKey(Topic,"Image")
-   Result.Image := Topic.Image
+   Result.Image := Topic.Image, Cache[Result.URL].Image := Topic.Image
   If ObjHasKey(Topic,"Source")
-   Result.Source := Topic.Source
+   Result.Source := Topic.Source, Cache[Result.URL].Source := Topic.Source
+  Cache[Result.URL].Description := Topic.Description
  }
  Result.Description := Topic.Description
 }
@@ -150,8 +154,8 @@ ReadCache(Cache)
  Result := Object()
  Loop, Parse, Cache, `n, %A_Space%`t ;loop through each cache entry
  {
-  Position := InStr(A_LoopField,"`t"), URL := SubStr(A_LoopField,1,Position - 1), Field := SubStr(A_LoopField,Position + 1) ;extract the URL field
   Entry := Object()
+  Position := InStr(A_LoopField,"`t"), URL := SubStr(A_LoopField,1,Position - 1), Field := SubStr(A_LoopField,Position + 1) ;extract the URL field
   Position := InStr(Field,"`t"), Entry.Image := SubStr(Field,1,Position - 1), Field := SubStr(Field,Position + 1) ;extract the image field
   Position := InStr(Field,"`t"), Entry.Source := SubStr(Field,1,Position - 1), Field := SubStr(Field,Position + 1) ;extract the source field
   Entry.Description := Field ;extract the description field
