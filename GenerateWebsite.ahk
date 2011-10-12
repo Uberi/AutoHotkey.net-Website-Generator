@@ -19,9 +19,6 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-;wip: use NoImage.jpg properly if no image was present
-;wip: improve image detection to avoid detecting smilies as images
-
 ;credentials
 ForumUsername := "Uberi"
 AutoHotkeyNetUsername := ""

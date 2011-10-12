@@ -140,6 +140,8 @@ ShowOptionsDialog()
  Gui, Show, w470 h70, Website Generator
  SetTimer, UpdateProgress, 40
  GenerateWebsite()
+ SetTimer, UpdateProgress, Off
+ Gui, Destroy
  MsgBox, 64, Complete, Website has been successfully generated.
  ExitApp
 

@@ -22,8 +22,6 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-;wip: cache support
-
 n:=-4
 MsgBox % ~n//~0
 
@@ -34,7 +32,8 @@ TemplateInit()
  TemplateSingleTags := Object("ahk_script",Func("TemplateProcessScript")) ;self contained tag
  TemplateMatchedTags := Object("ahk_for_each",Func("TemplateProcessForEach")
   ,"ahk_repeat",Func("TemplateProcessRepeat")
-  ,"ahk_if",Func("TemplateProcessIf")) ;matched tag
+  ,"ahk_if",Func("TemplateProcessIf")
+  ,"ahk_if_not",Func("TemplateProcessIfNot")) ;matched tag
 
  ;template properties
  FormatTime, Temp1,, Time
@@ -182,6 +181,19 @@ TemplateProcessIf(This,Attributes,TagContents)
   If (ObjHasKey(TemplateScriptProperties,Key) && TemplateScriptProperties[Key] != "") ;key is present and not blank in script properties
    Return, TemplatePage(TagContents)
   Return
+ }
+}
+
+TemplateProcessIfNot(This,Attributes,TagContents)
+{
+ global TemplateProperties, TemplateScriptProperties
+ For Key In Attributes
+ {
+  If (ObjHasKey(TemplateProperties,Key) && TemplateProperties[Key] != "") ;key is present and not blank in template properties
+   Return
+  If (ObjHasKey(TemplateScriptProperties,Key) && TemplateScriptProperties[Key] != "") ;key is present and not blank in script properties
+   Return
+  Return, TemplatePage(TagContents)
  }
 }
 

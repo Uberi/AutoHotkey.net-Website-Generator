@@ -162,7 +162,7 @@ ForumGetTopicInfo(URL)
  Result.Description := Temp1 ;set the description field of the result
 
  ;extract an image if present
- If RegExMatch(ForumTopic,"iS)<img\s.*?src=""([^""]*)""",Output)
+ If RegExMatch(ForumTopic,"iS)<img\s.*?src=""([^:]+://[^""]*)""",Output) ;match images that are sourced from absolute links
   Result.Image := Output1 ;set the image field of the result
 
  ;extract a download link if present
