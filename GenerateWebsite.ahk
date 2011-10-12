@@ -20,6 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 ;wip: use NoImage.jpg properly if no image was present
+;wip: improve image detection to avoid detecting smilies as images
 
 ;credentials
 ForumUsername := "Uberi"
@@ -99,79 +100,7 @@ GenerateWebsite()
  FileAppend, %Stylesheet%, %OutputStylesheetPath%
 }
 
-;searches the AutoHotkey forums for scripts posted by a specified forum user
-SearchForum(ForumUsername,SearchEnglishForum,SearchGermanForum)
-{
- global Cache
- Results := Array()
- If SearchEnglishForum
- {
-  For Index, Result In ForumSearch("http://www.autohotkey.com/forum/","",ForumUsername,2) ;search the English AutoHotkey forum for posts by the specified forum user
-  {
-   If (Result.Author = ForumUsername)
-    GetTopic(Result), ObjInsert(Results,Result)
-  }
- }
- If SearchGermanForum
- {
-  For Index, Result In ForumSearch("http://de.autohotkey.com/forum/","",ForumUsername,2) ;search the German AutoHotkey forum for posts by the specified forum user
-  {
-   If (Result.Author = ForumUsername)
-    GetTopic(Result), ObjInsert(Results,Result)
-  }
- }
- Return, Results
-}
-
-;retrieves information about a given forum topic
-GetTopic(ByRef Result)
-{
- global Cache
- If ObjHasKey(Cache,Result.URL) ;cache contains topic information
- {
-  Topic := Cache[Result.URL]
-  If (Topic.Image != "")
-   Result.Image := Topic.Image
-  If (Topic.Source != "")
-   Result.Source := Topic.Source
- }
- Else ;download information from the forum
- {
-  Topic := ForumGetTopicInfo(Result.URL)
-  Cache[Result.URL] := Object()
-  If ObjHasKey(Topic,"Image")
-   Result.Image := Topic.Image, Cache[Result.URL].Image := Topic.Image
-  If ObjHasKey(Topic,"Source")
-   Result.Source := Topic.Source, Cache[Result.URL].Source := Topic.Source
-  Cache[Result.URL].Description := Topic.Description
- }
- Result.Description := Topic.Description
-}
-
-ReadCache(Cache)
-{
- Cache := Trim(Cache," `t`n") ;remove leading and trailing whitespace and newlines
- Result := Object()
- Loop, Parse, Cache, `n, %A_Space%`t ;loop through each cache entry
- {
-  Entry := Object()
-  Position := InStr(A_LoopField,"`t"), URL := SubStr(A_LoopField,1,Position - 1), Field := SubStr(A_LoopField,Position + 1) ;extract the URL field
-  Position := InStr(Field,"`t"), Entry.Image := SubStr(Field,1,Position - 1), Field := SubStr(Field,Position + 1) ;extract the image field
-  Position := InStr(Field,"`t"), Entry.Source := SubStr(Field,1,Position - 1), Field := SubStr(Field,Position + 1) ;extract the source field
-  Entry.Description := Field ;extract the description field
-  ObjInsert(Result,URL,Entry) ;add the entry to the cache object
- }
- Return, Result
-}
-
-SaveCache(Cache)
-{
- Result := ""
- For URL, Entry In Cache
-  Result .= URL . "`t" . Entry.Image . "`t" . Entry.Source . "`t" . Entry.Description . "`n"
- Return, SubStr(Result,1,-1)
-}
-
 #Include Options.ahk
+#Include Utility.ahk
 #Include Forum Functions.ahk
 #Include Template.ahk
