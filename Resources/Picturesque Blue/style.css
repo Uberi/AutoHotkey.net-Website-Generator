@@ -178,8 +178,7 @@ p#credits
 
 p#footer
 {
-	position:absolute;
-	right:1em;
-	bottom:1em;
+	text-align:right;
+	padding:1em;
 	color:white;
 }

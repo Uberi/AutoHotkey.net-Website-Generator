@@ -31,6 +31,8 @@ For Index, Result In Search
 MsgBox % TopicList
 */
 
+;wip: handle posts without signatures
+
 ;searches the AutoHotkey forum and returns the results in the form of an object
 ForumSearch(BaseURL = "",Keywords = "",Author = "",ForumIndex = 0,ResultLimit = 0,SearchAny = 0,PreviousDays = 0)
 {
@@ -166,7 +168,7 @@ ForumGetTopicInfo(URL)
   Result.Image := Output1 ;set the image field of the result
 
  ;extract a download link if present
- If RegExMatch(ForumTopic,"iS)<a\s.*?href=""([^""]*\.(?:ahk|exe))""[^>]*>[\w\s\.-]+</a>",Output)
+ If RegExMatch(ForumTopic,"iS)<a\s.*?href=""([^""]*\.(?:ahk|exe))""[^>]*>[^<>]+</a>",Output)
   Result.Source := Output1 ;set the image field of the result
 
  Return, Result

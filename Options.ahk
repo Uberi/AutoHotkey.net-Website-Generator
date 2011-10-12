@@ -191,23 +191,11 @@ ValidateOptions()
   MsgBox, 16, Error, Invalid output directory:`n`n"%OutputPath%"
   ExitApp, 1
  }
- If (SubStr(OutputPath,0) = "\") ;remove trailing backslash if present
-  OutputPath := SubStr(OutputPath,1,-1)
+ OutputPath := ExpandPath(OutputPath)
 
  If !InStr(FileExist(TemplatePath),"D") ;template directory does not exist
  {
   MsgBox, 16, Error, Invalid template:`n`n"%Template%"
   ExitApp, 1
  }
-
- FileRead, PageTemplate, %PagePath% ;read the stylesheet
- If ErrorLevel ;stylesheet could not be read
- {
-  MsgBox, 16, Error, Could not find page template:`n`n"%PagePath%"
-  ExitApp, 1
- }
-
- FileRead, Stylesheet, %StylesheetPath% ;read the stylesheet
- If ErrorLevel ;stylesheet could not be read
-  Stylesheet := "" ;use a blank stylesheet
 }

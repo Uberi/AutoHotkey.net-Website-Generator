@@ -112,3 +112,10 @@ SortByTitle(InputObject)
  }
  Return, Result
 }
+
+;converts a path into an absolute path
+ExpandPath(Path)
+{
+ Loop, %Path%, 2
+  Return, A_LoopFileLongPath
+}

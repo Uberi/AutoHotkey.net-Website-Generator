@@ -1,5 +1,7 @@
 #NoEnv
 
+;wip: allow templating css files
+
 /*
 Copyright 2011 Anthony Zhang <azhang9@gmail.com>
 
@@ -59,10 +61,10 @@ Return
 
 GenerateWebsite()
 {
- global ResourcesPath, OutputPath, Template, TemplatePath, PagePath, StylesheetPath, UseCache, Cache, PageTemplate, Stylesheet
- TemplatePath := ResourcesPath . "\" . Template ;set the path of the template
- PagePath := TemplatePath . "\index.html" ;set the path of the page template
- StylesheetPath := TemplatePath . "\style.css" ;set the path of the stylesheet
+ global ResourcesPath, TemplatePath, OutputPath, Template, UseCache, Cache
+
+ TemplatePath := ExpandPath(ResourcesPath . "\" . Template) ;set the path of the template
+
  ValidateOptions() ;validate the given options
 
  ;read cache if needed
@@ -77,7 +79,20 @@ GenerateWebsite()
 
  ;process page template
  TemplateInit()
- Result := TemplatePage(PageTemplate)
+ PathLength := StrLen(TemplatePath) + 1
+ Loop, %TemplatePath%\*,, 1
+ {
+  TempOutput := OutputPath . SubStr(A_LoopFileFullPath,PathLength)
+  If (A_LoopFileExt = "htm" || A_LoopFileExt = "html") ;page template ;wip: configurable extensions
+  {
+   FileRead, PageTemplate, %A_LoopFileLongPath%
+   Result := TemplatePage(PageTemplate)
+   FileDelete, %TempOutput%
+   FileAppend, %Result%, %TempOutput%
+  }
+  Else ;other file type, can simply copy to output directory
+   FileCopy, %A_LoopFileLongPath%, %TempOutput%, 1
+ }
 
  ;save cache if needed
  If UseCache
@@ -85,16 +100,6 @@ GenerateWebsite()
   FileDelete, %CachePath%
   FileAppend, % SaveCache(Cache), %CachePath%
  }
-
- ;write the page to the output directory
- OutputPagePath := OutputPath . "\index.html"
- FileDelete, %OutputPagePath%
- FileAppend, %Result%, %OutputPagePath%
-
- ;write the stylesheet to the output directory
- OutputStylesheetPath := OutputPath . "\style.css"
- FileDelete, %OutputStylesheetPath%
- FileAppend, %Stylesheet%, %OutputStylesheetPath%
 }
 
 #Include Options.ahk
