@@ -23,7 +23,7 @@ ProcessCommandLineParameters()
 {
  global
  local ValidParameters, Temp1, Parameter, Position, Option, Value
- ValidParameters := Object("ForumUsername",0,"AutoHotkeyNetUsername",0,"AutoHotkeyNetPassword",0,"ShowGUI",1,"UploadWebsite",1,"SearchEnglishForum",1,"SearchGermanForum",1,"UseCache",1,"FileTemplatePattern",0,"Template",0,"SortEntries",1,"OutputPath",0,"RelativeLinks",1,"DownloadResources",1) ;a list of parameters and the types they accept (0 for string, 1 for boolean)
+ ValidParameters := Object("ForumUsername",0,"AutoHotkeyNetUsername",0,"AutoHotkeyNetPassword",0,"ShowGUI",1,"UploadWebsite",1,"SearchEnglishForum",1,"SearchGermanForum",1,"UseCache",1,"Template",0,"SortEntries",1,"OutputPath",0,"RelativeLinks",1,"DownloadResources",1) ;a list of parameters and the types they accept (0 for string, 1 for boolean)
  Loop, %0% ;loop through each command line parameter in the form "--OPTION=VALUE"
  {
   Parameter := %A_Index%
@@ -108,22 +108,23 @@ ShowOptionsDialog()
   GuiControl,, SortTime, 1
 
  Gui, Font, Bold
- Gui, Add, GroupBox, x10 y240 w610 h90, Behavior
+ Gui, Add, GroupBox, x10 y240 w310 h90, Behavior
  Gui, Font, Norm
  Gui, Add, CheckBox, x20 y260 w290 h20 vUseCache Checked%UseCache%, Use page information cache
  Gui, Add, CheckBox, x20 y280 w290 h20 vRelativeLinks Checked%RelativeLinks%, Rewrite script links into site links.
  Gui, Add, CheckBox, x20 y300 w290 h20 vDownloadResources Checked%DownloadResources%, Download all resources
 
- Gui, Add, Text, x340 y260 w140 h20, Template Files:
- Gui, Add, Edit, x430 y260 w180 h20 vFileTemplatePattern, %FileTemplatePattern%
- Gui, Add, Text, x340 y300 w90 h20, Output Directory:
- Gui, Add, Edit, x430 y300 w150 h20 vOutputPath, %OutputPath%
- Gui, Add, Button, x580 y300 w30 h20 gSelectFolder, ...
+ Gui, Font, Bold
+ Gui, Add, GroupBox, x330 y240 w290 h50, Output
+ Gui, Font, Norm
+ Gui, Add, Text, x340 y260 w90 h20, Output Directory:
+ Gui, Add, Edit, x430 y260 w150 h20 vOutputPath, %OutputPath%
+ Gui, Add, Button, x580 y260 w30 h20 gSelectFolder, ...
 
  Gui, Font, s10 Bold
- Gui, Add, Button, x10 y340 w610 h30 gOptionsDialogSubmit Default, Generate Website
+ Gui, Add, Button, x330 y300 w290 h30 gOptionsDialogSubmit Default, Generate Website
 
- Gui, Show, w630 h380, Website Generator
+ Gui, Show, w630 h340, Website Generator
  Return
  
  GuiEscape:

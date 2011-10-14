@@ -84,16 +84,16 @@ See existing templates for examples of usage.
 Template Tags
 -------------
 
-### <ahk_script *PROPERTY*>
+### &lt;ahk_script *PROPERTY*&gt;
 Self contained tag that is a placeholder for data specified by *PROPERTY*, where *PROPERTY* may be either a template or script property (script properties are only available if the tag is contained within an <ahk_for_each> tag). Both types of properties are documented below.
 
-### <ahk_for_each *SCRIPT_TYPE*>
+### &lt;ahk_for_each *SCRIPT_TYPE*&gt;
 Matched tag that searches the AutoHotkey forum for scripts of type *SCRIPT_TYPE*, where *SCRIPT_TYPE* may be either "Script" or "Library", and duplicates the contents of the tag for each search result. Tag contents may contain template tags; they will be processed separately for each iteration.
 
-### <ahk_if *PROPERTY*>
+### &lt;ahk_if *PROPERTY*&gt;
 Matched tag that does nothing if the data specified by *PROPERTY* is present, where *PROPERTY* may be either a template or script property (script properties are only available if the tag is contained within an <ahk_for_each> tag), but otherwise prevents the tag contents from reaching the output.
 
-### <ahk_if_not *PROPERTY*>
+### &lt;ahk_if_not *PROPERTY*&gt;
 Matched tag that prevents the tag contents from reaching the output if the data specified by *PROPERTY* is present, where *PROPERTY* may be either a template or script property (script properties are only available if the tag is contained within an <ahk_for_each> tag), but otherwise does nothing.
 
 Tag Properties

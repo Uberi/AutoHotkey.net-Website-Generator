@@ -22,24 +22,27 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;credentials
 ForumUsername := "Uberi"
 AutoHotkeyNetUsername := ""
+
+;upload
+UploadWebsite := 0
 AutoHotkeyNetPassword := ""
 
-;behavior
-ShowGUI := 1
-UploadWebsite := 0
+;search
 SearchEnglishForum := 1
 SearchGermanForum := 1
-UseCache := 1
-FileTemplatePattern := "S)\.(?:htm|html|css)"
 
 ;appearance
 Template := "Picturesque Blue"
 SortEntries := 0
 
-;output
-OutputPath := A_ScriptDir . "\WebPage"
+;behavior
+ShowGUI := 1
+UseCache := 1
 RelativeLinks := 1
 DownloadResources := 0
+
+;output
+OutputPath := A_ScriptDir . "\WebPage"
 
 ResourcesPath := A_ScriptDir . "\Resources"
 
@@ -81,7 +84,7 @@ GenerateWebsite()
  Loop, %TemplatePath%\*,, 1
  {
   TempOutput := OutputPath . SubStr(A_LoopFileFullPath,PathLength)
-  If RegExMatch(A_LoopFileName,FileTemplatePattern) ;page template, process template tags
+  If (A_LoopFileExt = "htm" || A_LoopFileExt = "html" || A_LoopFileExt = "css") ;templatable file, process template tags
   {
    FileRead, PageTemplate, %A_LoopFileLongPath%
    Result := TemplatePage(PageTemplate)
