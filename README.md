@@ -53,6 +53,7 @@ Options
 * _SearchEnglishForum_ - Search the English AutoHotkey Forums for posts.
 * _SearchGermanForum_ - Search the German AutoHotkey Forums for posts.
 * _UseCache_ - Use the information cache to avoid downloading unnecessary data.
+* _FileTemplatePattern_ - Regular expression matching file names that should be processed by the template engine.
 
 ### Appearance
 * _Stylesheet_ - The stylesheet to use for the generated website, without the ".css" extension.
@@ -60,8 +61,7 @@ Options
 
 ### Output
 * _OutputDirectory_ - The local directory to save the generated website.
-* _InlineCSS_ - Inline the CSS stylesheet within the HTML page. Useful for making websites self contained.
-* _RelativeLinks_ - Rewrite links to make them relative to the webpage if possible.
+* _RelativeLinks_ - Rewrite links to scripts to make them relative to the webpage if possible.
 * _DownloadResources_ - Download resources such as scripts and images to the website directory, to make the generated website self contained.
 
 [AutoHotkey Forums]: http://www.autohotkey.com/forum/

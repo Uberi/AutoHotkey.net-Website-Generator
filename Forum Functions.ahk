@@ -157,7 +157,7 @@ ForumGetTopicInfo(URL)
  Temp1 := RegExReplace(Temp1,"S)^[^\.]*\K:$",".") ;if the description ends with a colon, and contains only one sentence, replace the colon with a period
  If (SubStr(Temp1,0) != ".") ;insert a period at the end of the description if one is not present
   Temp1 .= "."
- Temp1 := RegExReplace(Temp1,"iS)<a\s.*?href=""([^""]*)""[^>]*>([^<]+)</a>","<> href=""$1"" class=""link"">$2</>") ;normalize hyperlinks and temporarily change them into invalid tags ;wip: if this is a link to a topic, search the topic result list and link to another place in the generated website?
+ Temp1 := RegExReplace(Temp1,"iS)<a\s.*?href=""([^""]*)""[^>]*>([^<]+)</a>","<> href=""$1"" class=""link"">$2</>") ;normalize hyperlinks and temporarily change them into invalid tags
  Temp1 := RegExReplace(Temp1,"iS)<(?!/?>)[^>]*>") ;remove any HTML tags excluding hyperlinks that are still present
  StringReplace, Temp1, Temp1, <>, <a, All ;return opening hyperlink tags to their original form
  StringReplace, Temp1, Temp1, </>, </a>, All ;return closing hyperlink tags to their original form
@@ -172,17 +172,6 @@ ForumGetTopicInfo(URL)
   Result.Source := Output1 ;set the image field of the result
 
  Return, Result
-}
-
-;detects the category of a given topic
-DetectTopicCategory(Title,Description) ;wip: allow user definitions with regex
-{
- LibraryKeywords := "Library,Function,Lib,Funktionen"
- If Title Contains %LibraryKeywords%
-  Return, "Library"
- If Description Contains %LibraryKeywords%
-  Return, "Library"
- Return, "Script"
 }
 
 URLEncode(URL)

@@ -1,7 +1,6 @@
 #NoEnv
 
-#Warn All
-#Warn LocalSameAsGlobal, Off
+;wip: support nested ahk_for_each tags properly
 
 /*
 Copyright 2011 Anthony Zhang <azhang9@gmail.com>
@@ -21,9 +20,6 @@ GNU Affero General Public License for more details.
 You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-
-n:=-4
-MsgBox % ~n//~0
 
 ;initializes resources needed by the templating engine
 TemplateInit()
@@ -135,15 +131,13 @@ TemplateProcessForEach(This,Attributes,TagContents)
  Else If ObjHasKey(Attributes,"Library")
   TypeFilter := "Library"
 
- Result := ""
- UsedFragmentList := Object() ;an object containing all URL fragments generated so far
-
  ;loop through each script
+ Result := ""
  For Index, Entry In GetResults(TypeFilter)
  {
   ;prepare the script properties object
   TemplateScriptProperties.Index := Index
-  TemplateScriptProperties.Fragment := GenerateURLFragment(Entry.Title,UsedFragmentList)
+  TemplateScriptProperties.Fragment := Entry.Fragment
   TemplateScriptProperties.Title := HTMLEscape(Entry.Title)
   TemplateScriptProperties.Image := HTMLEscape(Entry.Image)
   TemplateScriptProperties.Description := Entry.Description
@@ -195,28 +189,4 @@ TemplateProcessIfNot(This,Attributes,TagContents)
    Return
   Return, TemplatePage(TagContents)
  }
-}
-
-;retrieve the results of searching the forum
-GetResults(TypeFilter = "")
-{
- global ForumUsername, SearchEnglishForum, SearchGermanForum, SortEntries
- static Results := ""
- If !IsObject(Results)
- {
-  Results := SearchForum(ForumUsername,SearchEnglishForum,SearchGermanForum)
-  If SortEntries
-   Results := SortByTitle(Results)
- }
- If (TypeFilter != "") ;process the script type filter if given
- {
-  Filtered := Array()
-  For Index, Result In Results
-  {
-   If (DetectTopicCategory(Result.Title,Result.Description) = TypeFilter)
-    ObjInsert(Filtered,Result)
-  }
-  Return, Filtered
- }
- Return, Results
 }
