@@ -1,7 +1,5 @@
 #NoEnv
 
-;wip: support nested ahk_for_each tags properly
-
 /*
 Copyright 2011 Anthony Zhang <azhang9@gmail.com>
 
@@ -39,8 +37,7 @@ TemplateInit()
   ,"Date",Temp2
   ,"Template",Template)
 
- ;current script properties
- TemplateScriptProperties := Object()
+ TemplateScriptProperties := Object() ;set up an empty script properties object
 
  ;build up the pattern matching template tags
  TemplateAttributePattern := "\s+([\w-]+)(?:\s*=\s*(?:""([^""]*)""|'([^']*)'|([^\s""'``=<>]*)))?" ;pattern matching a single tag attribute
@@ -124,6 +121,10 @@ TemplateProcessScript(This,Attributes)
 TemplateProcessForEach(This,Attributes,TagContents)
 {
  global TemplateScriptProperties
+
+ ScriptProperties := TemplateScriptProperties ;backup the script property object to be restored afterwards
+ TemplateScriptProperties := Object() ;create a new script property object for the current tag
+
  ;look for type filters
  TypeFilter := ""
  If ObjHasKey(Attributes,"Script")
@@ -145,7 +146,8 @@ TemplateProcessForEach(This,Attributes,TagContents)
   TemplateScriptProperties.Source := HTMLEscape(Entry.Source)
   Result .= TemplatePage(TagContents)
  }
- TemplateScriptProperties := Object() ;clear the script properties
+
+ TemplateScriptProperties := ScriptProperties ;restore the previous script property object
  Return, Result
 }
 

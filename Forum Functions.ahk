@@ -31,8 +31,6 @@ For Index, Result In Search
 MsgBox % TopicList
 */
 
-;wip: handle posts without signatures
-
 ;searches the AutoHotkey forum and returns the results in the form of an object
 ForumSearch(BaseURL = "",Keywords = "",Author = "",ForumIndex = 0,ResultLimit = 0,SearchAny = 0,PreviousDays = 0)
 {
