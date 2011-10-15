@@ -193,7 +193,7 @@ TemplateProcessIfNot(This,Attributes,TagContents)
  }
 }
 
-;retrieve the cached results of searching the forum
+;retrieve the results of searching the forum, or the cached results if available
 GetResults(TypeFilter = "")
 {
  global ForumUsername, SortEntries, RelativeLinks

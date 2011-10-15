@@ -99,6 +99,16 @@ GenerateWebsite()
  {
   OutputSubpath := SubStr(A_LoopFileFullPath,PathLength + 1) ;obtain the relative path
   TempOutput := OutputPath . "\" . OutputSubpath ;obtain the path of the corresponding file in the output
+
+  ;handle nonexistant subdirectories in the output directory
+  SplitPath, TempOutput,, Temp1 ;obtain the directory of the current file in the output
+  If !InStr(FileExist(Temp1),"D") ;the directory could not be found
+  {
+   FileCreateDir, %Temp1% ;create the directory
+   If ErrorLevel
+    OutputError("Could not create folder: " . Temp1)
+  }
+
   If (A_LoopFileExt = "htm" || A_LoopFileExt = "html" || A_LoopFileExt = "css") ;templatable file
   {
    FileRead, PageTemplate, %A_LoopFileLongPath%
