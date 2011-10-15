@@ -32,9 +32,9 @@ Setting the variables at the top of the main script, "GeneratePage.ahk", will af
 
 Command line parameters override the variables set at the top of the main script. Parameter names mirror the names of the aforementioned variables:
 
-    GenerateWebsite.ahk --ShowGUI=False --ForumUsername=Uberi --UploadWebsite=True --AutoHotkeyNetPassword=MyPassword --ColorScheme=Blue
+    GenerateWebsite.ahk --ShowGUI=False --ForumUsername=Uberi --UploadWebsite=True --AutoHotkeyNetPassword=MyPassword --ColorScheme=Blue > Log.txt
 
-The above would silently generate a page for the user "Uberi" at the AutoHotkey Forums with a blue color scheme, and then upload it to AutoHotkey.net over FTP.
+The above would silently generate a page for the user "Uberi" at the AutoHotkey Forums with a blue color scheme, and then upload it to AutoHotkey.net over FTP. Any errors encountered would be reported in Log.txt
 
 ### GUI configuration
 

@@ -200,7 +200,7 @@ GetResults(TypeFilter = "")
  static Results := ""
  If !IsObject(Results)
  {
-  Results := SearchForum(ForumUsername)
+  Results := ForumSearchAll(ForumUsername)
 
   ;add URL fragments to each result
   UsedFragmentList := Object() ;an object containing all URL fragments generated so far

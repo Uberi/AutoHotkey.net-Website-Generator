@@ -51,7 +51,7 @@ ProcessCommandLineParameters()
 ShowOptionsDialog()
 {
  global
- local TemplatesList
+ local Temp1, TemplatesList
  Gui, Font, s18 Bold, Arial
  Gui, Add, Text, x2 y0 w630 h30 Center, AutoHotkey.net Website Generator
 
@@ -136,7 +136,7 @@ ShowOptionsDialog()
  GenerateWebsite()
  SetTimer, UpdateProgress, Off
  Gui, Destroy
- MsgBox, 64, Complete, Website has been successfully generated.
+ MsgBox, 64, Complete, Website generation complete.
  ExitApp
 
  UpdateProgress:

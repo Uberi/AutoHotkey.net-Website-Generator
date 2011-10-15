@@ -4,9 +4,9 @@ OutputError(ErrorText,Fatal = 0)
 {
  global ShowGUI
  If ShowGUI
-  MsgBox, 16, Error, %ErrorText%
+  MsgBox, 16, Error, %ErrorText% ;display the error
  Else
-  FileAppend, %ErrorText%, *
+  FileAppend, %ErrorText%`n, * ;write the error text to standard output
  If Fatal ;unrecoverable error
   ExitApp, 1
 }
@@ -40,6 +40,7 @@ SaveCache(Cache)
 ;sorts an array of results by title
 SortByTitle(InputObject)
 {
+ ;merge sort algorithm
  MaxIndex := ObjMaxIndex(InputObject), (MaxIndex = "") ? (MaxIndex := 0) : ""
  If (MaxIndex < 2)
   Return, InputObject

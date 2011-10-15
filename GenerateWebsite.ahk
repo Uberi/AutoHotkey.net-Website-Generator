@@ -64,7 +64,7 @@ Return
 
 GenerateWebsite()
 {
- global ResourcesPath, TemplatePath, OutputPath, Template, UseCache, Cache, UploadWebsite, AutoHotkeyNetUsername, AutoHotkeyNetPassword
+ global ResourcesPath, TemplatePath, OutputPath, Template, UseCache, Cache, UploadWebsite
 
  ;process paths
  If !InStr(FileExist(OutputPath),"D") ;output directory does not exist
@@ -91,8 +91,6 @@ GenerateWebsite()
   OutputError("Could not open uploading session with AutoHotkey.net. The program will continue without uploading.")
   UploadWebsite := 0 ;disable uploading since session opening failed
  }
- Else
-  UploadError := ""
 
  ;process page template
  TemplateInit()
@@ -113,19 +111,11 @@ GenerateWebsite()
 
   ;process uploading if needed
   If (UploadWebsite && AutoHotkeySiteUpload(TempOutput,OutputSubpath)) ;upload option set and file upload failed ;wip: create the folder if it doesn't exist
-  {
-   If ShowGUI
-    UploadError .= TempOutput
-   Else
-    OutputError("Could not upload file: " . TempOutput)
-  }
+   OutputError("Could not upload file: " . TempOutput)
  }
 
- If (ShowGUI && UploadError !="")
-  MsgBox, 16, Error, The following files could not be uploaded:`n`n%UploadError%
-
- If UploadWebsite
-  AutoHotkeySiteCloseSession()
+ If (UploadWebsite && AutoHotkeySiteCloseSession())
+  OutputError("Could not close uploading session.")
 
  ;save cache if needed
  If UseCache
