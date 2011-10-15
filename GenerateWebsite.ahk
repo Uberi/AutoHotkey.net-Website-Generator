@@ -39,7 +39,7 @@ SortEntries := 0
 ShowGUI := 1
 UseCache := 1
 RelativeLinks := 1
-DownloadResources := 0
+DownloadResources := 0 ;wip: not implemented yet
 
 ;output
 OutputPath := A_ScriptDir . "\WebPage"
@@ -62,7 +62,7 @@ Return
 
 GenerateWebsite()
 {
- global ResourcesPath, TemplatePath, OutputPath, FileTemplatePattern, Template, UseCache, Cache
+ global ResourcesPath, TemplatePath, OutputPath, Template, UseCache, Cache, UploadWebsite, AutoHotkeyNetUsername, AutoHotkeyNetPassword
 
  TemplatePath := ExpandPath(ResourcesPath . "\" . Template) ;set the path of the template
 
@@ -78,12 +78,21 @@ GenerateWebsite()
  Else
   Cache := Object()
 
+ ;open an AutoHotkey.net upload session if needed
+ If (UploadWebsite && AutoHotkeySiteOpenSession()) ;upload option set and failed to open session
+ {
+   ;wip: error here
+   MsgBox
+   UploadWebsite := 0 ;disable uploading since session opening failed
+ }
+
  ;process page template
  TemplateInit()
  PathLength := StrLen(TemplatePath) + 1
  Loop, %TemplatePath%\*,, 1
  {
-  TempOutput := OutputPath . SubStr(A_LoopFileFullPath,PathLength)
+  OutputSubpath := SubStr(A_LoopFileFullPath,PathLength + 1)
+  TempOutput := OutputPath . "\" . OutputSubpath
   If (A_LoopFileExt = "htm" || A_LoopFileExt = "html" || A_LoopFileExt = "css") ;templatable file, process template tags
   {
    FileRead, PageTemplate, %A_LoopFileLongPath%
@@ -93,6 +102,19 @@ GenerateWebsite()
   }
   Else ;other file type, can copy to output directory
    FileCopy, %A_LoopFileLongPath%, %TempOutput%, 1
+
+  ;process uploading
+  If (UploadWebsite && AutoHotkeySiteUpload(TempOutput,OutputSubpath)) ;upload option set and file upload failed ;wip: create the folder if it doesn't exist
+  {
+   ;wip: error here
+   MsgBox
+  }
+ }
+
+ If (UploadWebsite && AutoHotkeySiteCloseSession())
+ {
+  ;wip: error here
+  MsgBox
  }
 
  ;save cache if needed
@@ -170,6 +192,44 @@ MakeRelativeLinks(ByRef Results)
   }
   Result.Description := Description1 . SubStr(Description,Position1) ;set the description to the processed result
  }
+}
+
+;opens an FTP session with AutoHotkey.net
+AutoHotkeySiteOpenSession()
+{
+ global AutoHotkeyNetUsername, AutoHotkeyNetPassword, hWinINet, hInternet, hConnection
+ UPtr := A_PtrSize ? "UPtr" : "UInt"
+ hWinINet := DllCall("LoadLibrary","Str","wininet.dll")
+ hInternet := DllCall("wininet\InternetOpen","Str","AutoHotkey","UInt",0,"UInt",0,"UInt",0,"UInt",0)
+ If !hInternet
+  Return, 1
+ hConnection := DllCall("wininet\InternetConnect","UInt",hInternet,"Str","autohotkey.net","UInt",21,UPtr,&AutoHotkeyNetUsername,UPtr,&AutoHotkeyNetPassword,"UInt",1,"UInt",0,"UInt",0)
+ If !hConnection
+  Return, 1
+ Return, 0
+}
+
+;uploads a file to AutoHotkey.net
+AutoHotkeySiteUpload(LocalFile,RemoteFile)
+{
+ global hConnection
+ UPtr := A_PtrSize ? "UPtr" : "UInt"
+ If !DllCall("wininet\FtpPutFile","UInt",hConnection,UPtr,&LocalFile,UPtr,&RemoteFile,"UInt",0,"UInt",0)
+  Return, 1
+ Return, 0
+}
+
+;closes the previously opened FTP session
+AutoHotkeySiteCloseSession()
+{
+ global hWinINet, hInternet, hConnection
+ UPtr := A_PtrSize ? "UPtr" : "UInt"
+ If !DllCall("wininet\InternetCloseHandle","UInt",hConnection)
+  Return, 1
+ If !DllCall("wininet\InternetCloseHandle","UInt",hInternet)
+  Return, 1
+ DllCall("FreeLibrary",UPtr,hWinINet)
+ Return, 0
 }
 
 #Include Options.ahk
