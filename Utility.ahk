@@ -1,52 +1,14 @@
 #NoEnv
 
-;searches the AutoHotkey forums for scripts posted by a specified forum user
-SearchForum(ForumUsername,SearchEnglishForum,SearchGermanForum)
+OutputError(ErrorText,Fatal = 0)
 {
- global Cache
- Results := Array()
- If SearchEnglishForum
- {
-  For Index, Result In ForumSearch("http://www.autohotkey.com/forum/","",ForumUsername,2) ;search the English AutoHotkey forum for posts by the specified forum user
-  {
-   If (Result.Author = ForumUsername)
-    GetTopic(Result), ObjInsert(Results,Result)
-  }
- }
- If SearchGermanForum
- {
-  For Index, Result In ForumSearch("http://de.autohotkey.com/forum/","",ForumUsername,2) ;search the German AutoHotkey forum for posts by the specified forum user
-  {
-   If (Result.Author = ForumUsername)
-    GetTopic(Result), ObjInsert(Results,Result)
-  }
- }
- Return, Results
-}
-
-;retrieves information about a given forum topic
-GetTopic(ByRef Result)
-{
- global Cache
- If ObjHasKey(Cache,Result.URL) ;cache contains topic information
- {
-  Topic := Cache[Result.URL]
-  If (Topic.Image != "")
-   Result.Image := Topic.Image
-  If (Topic.Source != "")
-   Result.Source := Topic.Source
- }
- Else ;download information from the forum
- {
-  Topic := ForumGetTopicInfo(Result.URL)
-  Cache[Result.URL] := Object()
-  If ObjHasKey(Topic,"Image")
-   Result.Image := Topic.Image, Cache[Result.URL].Image := Topic.Image
-  If ObjHasKey(Topic,"Source")
-   Result.Source := Topic.Source, Cache[Result.URL].Source := Topic.Source
-  Cache[Result.URL].Description := Topic.Description
- }
- Result.Description := Topic.Description
+ global ShowGUI
+ If ShowGUI
+  MsgBox, 16, Error, %ErrorText%
+ Else
+  FileAppend, %ErrorText%, *
+ If Fatal ;unrecoverable error
+  ExitApp, 1
 }
 
 ;parses a given cache into a cache object
@@ -73,20 +35,6 @@ SaveCache(Cache)
  For URL, Entry In Cache
   Result .= URL . "`t" . Entry.Image . "`t" . Entry.Source . "`t" . Entry.Description . "`n"
  Return, SubStr(Result,1,-1)
-}
-
-;generates a unique URL fragment from a title
-GenerateURLFragment(Title,UsedFragmentList)
-{
- Fragment := RegExReplace(Title,"S)\W")
- If ObjHasKey(UsedFragmentList,Fragment)
- {
-  Index := 1
-  While, ObjHasKey(UsedFragmentList,Fragment . Index)
-   Index ++
-  Fragment .= Index
- }
- Return, Fragment
 }
 
 ;sorts an array of results by title

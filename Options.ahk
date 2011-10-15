@@ -28,22 +28,13 @@ ProcessCommandLineParameters()
  {
   Parameter := %A_Index%
   If (SubStr(Parameter,1,2) != "--") ;parameters must begin with "--"
-  {
-   MsgBox, 16, Error, Invalid command line parameter given:`n`n"%Parameter%"
-   ExitApp, 1
-  }
+   OutputError("Invalid command line parameter given: " . Parameter,1)
   Temp1 := SubStr(Parameter,3), Position := InStr(Temp1,"=")
   If !Position ;could not find "="
-  {
-   MsgBox, 16, Error, Option is missing value:`n`n"%Parameter%"
-   ExitApp, 1
-  }
+   OutputError("Option is missing value: " . Parameter,1)
   Option := SubStr(Temp1,1,Position - 1), Value := SubStr(Temp1,Position + 1)
   If !ObjHasKey(ValidParameters,Option)
-  {
-   MsgBox, 16, Error, Unknown option:`n`n"%Parameter%"
-   ExitApp, 1
-  }
+   OutputError("Unknown option: " . Parameter,1)
   If ValidParameters[Option] ;parameter is a boolean flag
   {
    If (Value = "True")
@@ -184,21 +175,4 @@ ShowOptionsDialog()
  GuiControl, Enable%Temp1%, AutoHotkeyNetPasswordLabel
  GuiControl, Enable%Temp1%, AutoHotkeyNetPassword
  Return
-}
-
-ValidateOptions()
-{
- global
- If !InStr(FileExist(OutputPath),"D") ;output directory does not exist
- {
-  MsgBox, 16, Error, Invalid output directory:`n`n"%OutputPath%"
-  ExitApp, 1
- }
- OutputPath := ExpandPath(OutputPath)
-
- If !InStr(FileExist(TemplatePath),"D") ;template directory does not exist
- {
-  MsgBox, 16, Error, Invalid template:`n`n"%Template%"
-  ExitApp, 1
- }
 }

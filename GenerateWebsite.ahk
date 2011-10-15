@@ -1,5 +1,7 @@
 #NoEnv
 
+;wip: logging and nested directories in templates
+
 /*
 Copyright 2011 Anthony Zhang <azhang9@gmail.com>
 
@@ -64,11 +66,16 @@ GenerateWebsite()
 {
  global ResourcesPath, TemplatePath, OutputPath, Template, UseCache, Cache, UploadWebsite, AutoHotkeyNetUsername, AutoHotkeyNetPassword
 
- TemplatePath := ExpandPath(ResourcesPath . "\" . Template) ;set the path of the template
+ ;process paths
+ If !InStr(FileExist(OutputPath),"D") ;output directory does not exist
+  OutputError("Invalid output directory: " . OutputPath,1)
+ OutputPath := ExpandPath(OutputPath) ;expand the path of the output
+ TemplatePath := ResourcesPath . "\" . Template
+ If !InStr(FileExist(TemplatePath),"D") ;template directory does not exist
+  OutputError("Invalid template: " . Template,1)
+ TemplatePath := ExpandPath(TemplatePath) ;set the path of the template
 
- ValidateOptions() ;validate the given options
-
- ;read cache if needed
+ ;open cache if needed
  If UseCache
  {
   CachePath := ResourcesPath . "\Cache.txt"
@@ -76,46 +83,49 @@ GenerateWebsite()
   Cache := ReadCache(Cache)
  }
  Else
-  Cache := Object()
+  Cache := Object() ;return a blank cache object
 
  ;open an AutoHotkey.net upload session if needed
  If (UploadWebsite && AutoHotkeySiteOpenSession()) ;upload option set and failed to open session
  {
-   ;wip: error here
-   MsgBox
-   UploadWebsite := 0 ;disable uploading since session opening failed
+  OutputError("Could not open uploading session with AutoHotkey.net. The program will continue without uploading.")
+  UploadWebsite := 0 ;disable uploading since session opening failed
  }
+ Else
+  UploadError := ""
 
  ;process page template
  TemplateInit()
- PathLength := StrLen(TemplatePath) + 1
+ PathLength := StrLen(TemplatePath) + 1 ;store the base path length
  Loop, %TemplatePath%\*,, 1
  {
-  OutputSubpath := SubStr(A_LoopFileFullPath,PathLength + 1)
-  TempOutput := OutputPath . "\" . OutputSubpath
-  If (A_LoopFileExt = "htm" || A_LoopFileExt = "html" || A_LoopFileExt = "css") ;templatable file, process template tags
+  OutputSubpath := SubStr(A_LoopFileFullPath,PathLength + 1) ;obtain the relative path
+  TempOutput := OutputPath . "\" . OutputSubpath ;obtain the path of the corresponding file in the output
+  If (A_LoopFileExt = "htm" || A_LoopFileExt = "html" || A_LoopFileExt = "css") ;templatable file
   {
    FileRead, PageTemplate, %A_LoopFileLongPath%
-   Result := TemplatePage(PageTemplate)
+   Result := TemplatePage(PageTemplate) ;run file contents through the template engine
    FileDelete, %TempOutput%
    FileAppend, %Result%, %TempOutput%
   }
-  Else ;other file type, can copy to output directory
-   FileCopy, %A_LoopFileLongPath%, %TempOutput%, 1
+  Else ;other file type
+   FileCopy, %A_LoopFileLongPath%, %TempOutput%, 1 ;copy directly to the output directory
 
-  ;process uploading
+  ;process uploading if needed
   If (UploadWebsite && AutoHotkeySiteUpload(TempOutput,OutputSubpath)) ;upload option set and file upload failed ;wip: create the folder if it doesn't exist
   {
-   ;wip: error here
-   MsgBox
+   If ShowGUI
+    UploadError .= TempOutput
+   Else
+    OutputError("Could not upload file: " . TempOutput)
   }
  }
 
- If (UploadWebsite && AutoHotkeySiteCloseSession())
- {
-  ;wip: error here
-  MsgBox
- }
+ If (ShowGUI && UploadError !="")
+  MsgBox, 16, Error, The following files could not be uploaded:`n`n%UploadError%
+
+ If UploadWebsite
+  AutoHotkeySiteCloseSession()
 
  ;save cache if needed
  If UseCache
@@ -134,39 +144,6 @@ DetectTopicCategory(Title,Description)
  If Description Contains %LibraryKeywords%
   Return, "Library"
  Return, "Script"
-}
-
-;retrieve the results of searching the forum
-GetResults(TypeFilter = "")
-{
- global ForumUsername, SearchEnglishForum, SearchGermanForum, SortEntries, RelativeLinks
- static Results := ""
- If !IsObject(Results)
- {
-  Results := SearchForum(ForumUsername,SearchEnglishForum,SearchGermanForum)
-
-  ;add URL fragments to each result
-  UsedFragmentList := Object() ;an object containing all URL fragments generated so far
-  For Index, Result In Results
-   Result.Fragment := GenerateURLFragment(Result.Title,UsedFragmentList)
-
-  If RelativeLinks
-   MakeRelativeLinks(Results)
-
-  If SortEntries
-   Results := SortByTitle(Results)
- }
- If (TypeFilter != "") ;process the script type filter if given
- {
-  Filtered := Array()
-  For Index, Result In Results
-  {
-   If (DetectTopicCategory(Result.Title,Result.Description) = TypeFilter)
-    ObjInsert(Filtered,Result)
-  }
-  Return, Filtered
- }
- Return, Results
 }
 
 ;converts links to script forum topics to webpage references
@@ -194,45 +171,8 @@ MakeRelativeLinks(ByRef Results)
  }
 }
 
-;opens an FTP session with AutoHotkey.net
-AutoHotkeySiteOpenSession()
-{
- global AutoHotkeyNetUsername, AutoHotkeyNetPassword, hWinINet, hInternet, hConnection
- UPtr := A_PtrSize ? "UPtr" : "UInt"
- hWinINet := DllCall("LoadLibrary","Str","wininet.dll")
- hInternet := DllCall("wininet\InternetOpen","Str","AutoHotkey","UInt",0,"UInt",0,"UInt",0,"UInt",0)
- If !hInternet
-  Return, 1
- hConnection := DllCall("wininet\InternetConnect","UInt",hInternet,"Str","autohotkey.net","UInt",21,UPtr,&AutoHotkeyNetUsername,UPtr,&AutoHotkeyNetPassword,"UInt",1,"UInt",0,"UInt",0)
- If !hConnection
-  Return, 1
- Return, 0
-}
-
-;uploads a file to AutoHotkey.net
-AutoHotkeySiteUpload(LocalFile,RemoteFile)
-{
- global hConnection
- UPtr := A_PtrSize ? "UPtr" : "UInt"
- If !DllCall("wininet\FtpPutFile","UInt",hConnection,UPtr,&LocalFile,UPtr,&RemoteFile,"UInt",0,"UInt",0)
-  Return, 1
- Return, 0
-}
-
-;closes the previously opened FTP session
-AutoHotkeySiteCloseSession()
-{
- global hWinINet, hInternet, hConnection
- UPtr := A_PtrSize ? "UPtr" : "UInt"
- If !DllCall("wininet\InternetCloseHandle","UInt",hConnection)
-  Return, 1
- If !DllCall("wininet\InternetCloseHandle","UInt",hInternet)
-  Return, 1
- DllCall("FreeLibrary",UPtr,hWinINet)
- Return, 0
-}
-
 #Include Options.ahk
 #Include Utility.ahk
+#Include AutoHotkey Site.ahk
 #Include Forum Functions.ahk
 #Include Template.ahk

@@ -31,6 +31,55 @@ For Index, Result In Search
 MsgBox % TopicList
 */
 
+;searches the AutoHotkey forums for scripts posted by a specified forum user
+ForumSearchAll(ForumUsername)
+{
+ global Cache, SearchEnglishForum, SearchGermanForum
+ Results := Array()
+ If SearchEnglishForum
+ {
+  For Index, Result In ForumSearch("http://www.autohotkey.com/forum/","",ForumUsername,2) ;search the English AutoHotkey forum for posts by the specified forum user
+  {
+   If (Result.Author = ForumUsername)
+    ExpandSearchResult(Result), ObjInsert(Results,Result)
+  }
+ }
+ If SearchGermanForum
+ {
+  For Index, Result In ForumSearch("http://de.autohotkey.com/forum/","",ForumUsername,2) ;search the German AutoHotkey forum for posts by the specified forum user
+  {
+   If (Result.Author = ForumUsername)
+    ExpandSearchResult(Result), ObjInsert(Results,Result)
+  }
+ }
+ Return, Results
+}
+
+;retrieves information about a given forum topic and adds the information to the given search result
+ExpandSearchResult(ByRef Result)
+{
+ global Cache
+ If ObjHasKey(Cache,Result.URL) ;cache contains topic information
+ {
+  Topic := Cache[Result.URL]
+  If (Topic.Image != "")
+   Result.Image := Topic.Image
+  If (Topic.Source != "")
+   Result.Source := Topic.Source
+ }
+ Else ;download information from the forum
+ {
+  Topic := ForumGetTopicInfo(Result.URL)
+  Cache[Result.URL] := Object()
+  If ObjHasKey(Topic,"Image")
+   Result.Image := Topic.Image, Cache[Result.URL].Image := Topic.Image
+  If ObjHasKey(Topic,"Source")
+   Result.Source := Topic.Source, Cache[Result.URL].Source := Topic.Source
+  Cache[Result.URL].Description := Topic.Description
+ }
+ Result.Description := Topic.Description
+}
+
 ;searches the AutoHotkey forum and returns the results in the form of an object
 ForumSearch(BaseURL = "",Keywords = "",Author = "",ForumIndex = 0,ResultLimit = 0,SearchAny = 0,PreviousDays = 0)
 {

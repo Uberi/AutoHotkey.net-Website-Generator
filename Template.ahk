@@ -192,3 +192,50 @@ TemplateProcessIfNot(This,Attributes,TagContents)
   Return, TemplatePage(TagContents)
  }
 }
+
+;retrieve the cached results of searching the forum
+GetResults(TypeFilter = "")
+{
+ global ForumUsername, SortEntries, RelativeLinks
+ static Results := ""
+ If !IsObject(Results)
+ {
+  Results := SearchForum(ForumUsername)
+
+  ;add URL fragments to each result
+  UsedFragmentList := Object() ;an object containing all URL fragments generated so far
+  For Index, Result In Results
+   Result.Fragment := GenerateURLFragment(Result.Title,UsedFragmentList)
+
+  If RelativeLinks
+   MakeRelativeLinks(Results)
+
+  If SortEntries
+   Results := SortByTitle(Results)
+ }
+ If (TypeFilter != "") ;process the script type filter if given
+ {
+  Filtered := Array()
+  For Index, Result In Results
+  {
+   If (DetectTopicCategory(Result.Title,Result.Description) = TypeFilter)
+    ObjInsert(Filtered,Result)
+  }
+  Return, Filtered
+ }
+ Return, Results
+}
+
+;generates a unique URL fragment from a title
+GenerateURLFragment(Title,UsedFragmentList)
+{
+ Fragment := RegExReplace(Title,"S)\W")
+ If ObjHasKey(UsedFragmentList,Fragment)
+ {
+  Index := 1
+  While, ObjHasKey(UsedFragmentList,Fragment . Index)
+   Index ++
+  Fragment .= Index
+ }
+ Return, Fragment
+}
