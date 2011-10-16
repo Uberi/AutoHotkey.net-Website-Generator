@@ -107,6 +107,8 @@ GenerateWebsite()
    FileCreateDir, %Temp1% ;create the directory
    If ErrorLevel
     OutputError("Could not create folder: " . Temp1)
+   If (UploadWebsite && AutoHotkeySiteCreateDirectory(Temp1)) ;upload option set and directory creation failed
+    OutputError("Could not create directory: " . Temp1)
   }
 
   If (A_LoopFileExt = "htm" || A_LoopFileExt = "html" || A_LoopFileExt = "css") ;templatable file
@@ -118,6 +120,8 @@ GenerateWebsite()
   }
   Else ;other file type
    FileCopy, %A_LoopFileLongPath%, %TempOutput%, 1 ;copy directly to the output directory
+  If ErrorLevel
+    OutputError("Could not write file: " . TempOutput)
 
   ;process uploading if needed
   If (UploadWebsite && AutoHotkeySiteUpload(TempOutput,OutputSubpath)) ;upload option set and file upload failed ;wip: create the folder if it doesn't exist

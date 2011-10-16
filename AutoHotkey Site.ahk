@@ -23,6 +23,16 @@ AutoHotkeySiteUpload(LocalFile,RemoteFile)
  Return, 0
 }
 
+;creates a directory at AutoHotkey.net
+AutoHotkeySiteCreateDirectory(Directory)
+{
+ global hConnection
+ UPtr := A_PtrSize ? "UPtr" : "UInt"
+ If !DllCall("wininet\FtpCreateDirectory","UInt",hConnection,UPtr,&Directory) ;wip: not sure about return value
+  Return, 1
+ Return, 0
+}
+
 ;closes the previously opened FTP session
 AutoHotkeySiteCloseSession()
 {
