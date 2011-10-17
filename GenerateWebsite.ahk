@@ -1,7 +1,5 @@
 #NoEnv
 
-;wip: logging and nested directories in templates
-
 /*
 Copyright 2011 Anthony Zhang <azhang9@gmail.com>
 
@@ -41,7 +39,7 @@ SortEntries := 0
 ShowGUI := 1
 UseCache := 1
 RelativeLinks := 1
-DownloadResources := 0 ;wip: not implemented yet
+DownloadResources := 0
 
 ;output
 OutputPath := A_ScriptDir . "\WebPage"
@@ -172,6 +170,51 @@ MakeRelativeLinks(ByRef Results)
     Description1 .= Output ;directly append the link
   }
   Result.Description := Description1 . SubStr(Description,Position1) ;set the description to the processed result
+ }
+}
+
+DownloadPageResources(ByRef Results)
+{
+ global OutputPath
+ BasePath := OutputPath . "\Resources" ;get a base path for all resources
+ PathLength := StrLen(OutputPath) + 1 ;get the length of the output path
+
+ ;create base path
+ If !InStr(FileExist(BasePath),"D")
+  FileCreateDir, %BasePath%
+
+ For Index, Result In Results
+ {
+  If ObjHasKey(Result,"Image")
+  {
+   ;get the path to the local version
+   Temp1 := Result.Image
+   SplitPath, Temp1, TempOutput
+   TempOutput := BasePath . "\" . URLDecode(TempOutput)
+
+   If !FileExist(TempOutput) ;file has already been downloaded
+   {
+    URLDownloadToFile, %Temp1%, %TempOutput% ;download the source
+    If ErrorLevel ;error downloading the file
+     Continue
+   }
+   Result.Image := SubStr(TempOutput,PathLength) ;rewrite path
+  }
+  If ObjHasKey(Result,"Source")
+  {
+   ;get the path to the local version
+   Temp1 := Result.Source
+   SplitPath, Temp1, TempOutput
+   TempOutput := BasePath . "\" . URLDecode(TempOutput)
+
+   If !FileExist(TempOutput) ;file has already been downloaded
+   {
+    URLDownloadToFile, %Temp1%, %TempOutput% ;download the source
+    If ErrorLevel ;error downloading the file
+     Continue
+   }
+   Result.Source := SubStr(TempOutput,PathLength) ;rewrite path
+  }
  }
 }
 

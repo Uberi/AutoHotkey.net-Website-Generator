@@ -196,7 +196,7 @@ TemplateProcessIfNot(This,Attributes,TagContents)
 ;retrieve the results of searching the forum, or the cached results if available
 GetResults(TypeFilter = "")
 {
- global ForumUsername, SortEntries, RelativeLinks
+ global ForumUsername, SortEntries, RelativeLinks, DownloadResources
  static Results := ""
  If !IsObject(Results)
  {
@@ -207,8 +207,11 @@ GetResults(TypeFilter = "")
   For Index, Result In Results
    Result.Fragment := GenerateURLFragment(Result.Title,UsedFragmentList)
 
+  ;process options
   If RelativeLinks
    MakeRelativeLinks(Results)
+  If DownloadResources
+   DownloadPageResources(Results)
 
   If SortEntries
    Results := SortByTitle(Results)
