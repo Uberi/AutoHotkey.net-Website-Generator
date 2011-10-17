@@ -28,7 +28,7 @@ AutoHotkeySiteCreateDirectory(Directory)
 {
  global hConnection
  UPtr := A_PtrSize ? "UPtr" : "UInt"
- If !DllCall("wininet\FtpCreateDirectory","UInt",hConnection,UPtr,&Directory) ;wip: not sure about return value
+ If !DllCall("wininet\FtpCreateDirectory","UInt",hConnection,UPtr,&Directory)
   Return, 1
  Return, 0
 }
