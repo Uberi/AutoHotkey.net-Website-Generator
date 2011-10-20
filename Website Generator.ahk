@@ -19,6 +19,8 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+;wip: create output directory if it doesn't already exist
+
 ;credentials
 ForumUsername := "Uberi"
 AutoHotkeyNetUsername := ""
@@ -55,22 +57,20 @@ If ShowGUI
  ShowOptionsDialog()
 Else
 {
- GenerateWebsite()
+ ;check for errors
+ If !InStr(FileExist(OutputPath),"D") ;output directory does not exist
+  OutputError("Invalid output directory: " . OutputPath,1)
+ TemplatePath := ResourcesPath . "\" . Template
+ If !InStr(FileExist(TemplatePath),"D") ;template directory does not exist
+  OutputError("Invalid template: " . Template,1)
+ GenerateWebsite(ResourcesPath,TemplatePath,OutputPath,Template,UseCache,Cache,UploadWebsite)
  ExitApp
 }
 Return
 
-GenerateWebsite()
+GenerateWebsite(ResourcesPath,TemplatePath,OutputPath,Template,UseCache,Cache,UploadWebsite)
 {
- global ResourcesPath, TemplatePath, OutputPath, Template, UseCache, Cache, UploadWebsite
-
- ;process paths
- If !InStr(FileExist(OutputPath),"D") ;output directory does not exist
-  OutputError("Invalid output directory: " . OutputPath,1)
  OutputPath := ExpandPath(OutputPath) ;expand the path of the output
- TemplatePath := ResourcesPath . "\" . Template
- If !InStr(FileExist(TemplatePath),"D") ;template directory does not exist
-  OutputError("Invalid template: " . Template,1)
  TemplatePath := ExpandPath(TemplatePath) ;set the path of the template
 
  ;open cache if needed
@@ -95,7 +95,7 @@ GenerateWebsite()
  PathLength := StrLen(TemplatePath) + 1 ;store the base path length
  Loop, %TemplatePath%\*,, 1
  {
-  OutputSubpath := SubStr(A_LoopFileFullPath,PathLength + 1) ;obtain the relative path
+  OutputSubpath := SubStr(A_LoopFileLongPath,PathLength + 1) ;obtain the relative path
   TempOutput := OutputPath . "\" . OutputSubpath ;obtain the path of the corresponding file in the output
 
   ;handle nonexistant subdirectories in the output directory
@@ -104,8 +104,8 @@ GenerateWebsite()
   {
    FileCreateDir, %Temp1% ;create the directory
    If ErrorLevel
-    OutputError("Could not create folder: " . Temp1)
-   If (UploadWebsite && AutoHotkeySiteCreateDirectory(Temp1)) ;upload option set and directory creation failed
+    OutputError("Could not create directory: " . Temp1)
+   If (UploadWebsite && AutoHotkeySiteCreateDirectory(Temp1)) ;upload option set and directory creation failed ;wip: sometimes the folder exists locally but not remotely. this should be put right before the file upload and use FtpFindFirstFile to make sure the directory exists first before creating it.
     OutputError("Could not create directory: " . Temp1)
   }
 
@@ -122,7 +122,7 @@ GenerateWebsite()
     OutputError("Could not write file: " . TempOutput)
 
   ;process uploading if needed
-  If (UploadWebsite && AutoHotkeySiteUpload(TempOutput,OutputSubpath)) ;upload option set and file upload failed ;wip: create the folder if it doesn't exist
+  If (UploadWebsite && AutoHotkeySiteUpload(TempOutput,OutputSubpath)) ;upload option set and file upload failed
    OutputError("Could not upload file: " . TempOutput)
  }
 

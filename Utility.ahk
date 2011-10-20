@@ -19,17 +19,6 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-OutputError(ErrorText,Fatal = 0)
-{
- global ShowGUI
- If ShowGUI
-  MsgBox, 16, Error, %ErrorText% ;display the error
- Else
-  FileAppend, %ErrorText%`n, * ;write the error text to standard output
- If Fatal ;unrecoverable error
-  ExitApp, 1
-}
-
 ;parses a given cache into a cache object
 ReadCache(Cache)
 {

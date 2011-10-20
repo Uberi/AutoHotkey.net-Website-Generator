@@ -123,8 +123,23 @@ ShowOptionsDialog()
  ExitApp
 
  OptionsDialogSubmit:
- ;submit variables and destroy the GUI
  Gui, Submit
+
+ ;check for errors
+ If !InStr(FileExist(OutputPath),"D") ;output directory does not exist
+ {
+  OutputError("Invalid output directory: " . OutputPath)
+  Gui, Show
+  Return
+ }
+ TemplatePath := ResourcesPath . "\" . Template
+ If !InStr(FileExist(TemplatePath),"D") ;template directory does not exist
+ {
+  OutputError("Invalid template: " . Template)
+  Gui, Show
+  Return
+ }
+
  Gui, Destroy
 
  ;create and show the progress dialog
@@ -133,7 +148,7 @@ ShowOptionsDialog()
  Gui, Add, Progress, x10 y40 w450 h20 vGenerationProgress -Smooth 0x8, 0
  Gui, Show, w470 h70, Website Generator
  SetTimer, UpdateProgress, 40
- GenerateWebsite()
+ GenerateWebsite(ResourcesPath,TemplatePath,OutputPath,Template,UseCache,Cache,UploadWebsite)
  SetTimer, UpdateProgress, Off
  Gui, Destroy
  MsgBox, 64, Complete, Website generation complete.
@@ -175,4 +190,15 @@ ShowOptionsDialog()
  GuiControl, Enable%Temp1%, AutoHotkeyNetPasswordLabel
  GuiControl, Enable%Temp1%, AutoHotkeyNetPassword
  Return
+}
+
+OutputError(ErrorText,Fatal = 0)
+{
+ global ShowGUI
+ If ShowGUI
+  MsgBox, 16, Error, %ErrorText% ;display the error
+ Else
+  FileAppend, %ErrorText%`n, * ;write the error text to standard output
+ If Fatal ;unrecoverable error
+   ExitApp, 1
 }
