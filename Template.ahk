@@ -141,7 +141,7 @@ TemplateProcessForEach(This,Attributes,TagContents)
   TemplateScriptProperties.Fragment := Entry.Fragment
   TemplateScriptProperties.Title := HTMLEscape(Entry.Title)
   TemplateScriptProperties.Image := HTMLEscape(Entry.Image)
-  TemplateScriptProperties.Description := Entry.Description
+  TemplateScriptProperties.Description := HTMLEscape(Entry.Description)
   TemplateScriptProperties.Topic := HTMLEscape(Entry.URL)
   TemplateScriptProperties.Source := HTMLEscape(Entry.Source)
   Result .= TemplatePage(TagContents)
@@ -233,12 +233,14 @@ GetResults(TypeFilter = "")
 GenerateURLFragment(Title,UsedFragmentList)
 {
  Fragment := RegExReplace(Title,"S)\W")
- If ObjHasKey(UsedFragmentList,Fragment)
+ If ObjHasKey(UsedFragmentList,Fragment) ;fragment has already been used
  {
+  ;find an unused fragment
   Index := 1
   While, ObjHasKey(UsedFragmentList,Fragment . Index)
    Index ++
   Fragment .= Index
  }
+ UsedFragmentList[Fragment] := "" ;reserve the used fragment in the used fragment list
  Return, Fragment
 }
