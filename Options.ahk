@@ -126,7 +126,7 @@ ShowOptionsDialog()
  Gui, Submit
 
  ;check for errors
- If !InStr(FileExist(OutputPath),"D") ;output directory does not exist
+ If (!InStr(FileExist(OutputPath),"D") && CreateDirectory(OutputPath)) ;output directory does not exist and could not be created
  {
   OutputError("Invalid output directory: " . OutputPath)
   Gui, Show
