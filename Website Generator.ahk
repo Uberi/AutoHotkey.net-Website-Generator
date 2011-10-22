@@ -103,8 +103,6 @@ GenerateWebsite(ResourcesPath,TemplatePath,OutputPath,Template,UseCache,Cache,Up
    FileCreateDir, %Temp1% ;create the directory
    If ErrorLevel
     OutputError("Could not create directory: " . Temp1)
-   If (UploadWebsite && AutoHotkeySiteCreateDirectory(Temp1)) ;upload option set and directory creation failed ;wip: sometimes the folder exists locally but not remotely. this should be put right before the file upload and use FtpFindFirstFile to make sure the directory exists first before creating it.
-    OutputError("Could not create directory: " . Temp1)
   }
 
   If (A_LoopFileExt = "htm" || A_LoopFileExt = "html" || A_LoopFileExt = "css") ;templatable file
@@ -120,8 +118,14 @@ GenerateWebsite(ResourcesPath,TemplatePath,OutputPath,Template,UseCache,Cache,Up
     OutputError("Could not write file: " . TempOutput)
 
   ;process uploading if needed
-  If (UploadWebsite && AutoHotkeySiteUpload(TempOutput,OutputSubpath)) ;upload option set and file upload failed
-   OutputError("Could not upload file: " . TempOutput)
+  If UploadWebsite
+  {
+   SplitPath, OutputSubpath,, Temp1
+   If AutoHotkeySiteCreateDirectory(Temp1) ;directory creation failed
+     OutputError("Could not create directory: " . Temp1)
+   If AutoHotkeySiteUpload(TempOutput,OutputSubpath) ;file upload failed
+    OutputError("Could not upload file: " . TempOutput)
+  }
  }
 
  If (UploadWebsite && AutoHotkeySiteCloseSession())

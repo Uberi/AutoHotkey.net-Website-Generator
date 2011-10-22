@@ -39,6 +39,7 @@ AutoHotkeySiteUpload(LocalFile,RemoteFile)
 {
  global hConnection
  UPtr := A_PtrSize ? "UPtr" : "UInt"
+ StringReplace, RemoteFile, RemoteFile, \, /, All
  If !DllCall("wininet\FtpPutFile","UInt",hConnection,UPtr,&LocalFile,UPtr,&RemoteFile,"UInt",0,"UInt",0)
   Return, 1
  Return, 0
