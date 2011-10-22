@@ -19,8 +19,6 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-;wip: create output directory if it doesn't already exist
-
 ;credentials
 ForumUsername := "Uberi"
 AutoHotkeyNetUsername := ""

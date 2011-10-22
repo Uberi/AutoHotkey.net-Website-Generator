@@ -48,9 +48,22 @@ AutoHotkeySiteUpload(LocalFile,RemoteFile)
 AutoHotkeySiteCreateDirectory(Directory)
 {
  global hConnection
- UPtr := A_PtrSize ? "UPtr" : "UInt"
- If !DllCall("wininet\FtpCreateDirectory","UInt",hConnection,UPtr,&Directory)
-  Return, 1
+ UPtr := A_PtrSize ? "UPtr" : "UInt", VarSetCapacity(FindData,48) ;initialize variables
+ Loop, Parse, Directory, \/ ;loop over each directory name in the path
+ {
+  ;set the proper path
+  If (A_Index = 1)
+   Path := A_LoopField
+  Else
+   Path .= "/" . A_LoopField
+
+  ;create the directory if it does not already exist
+  If !(DllCall("wininet\FtpFindFirstFile","UInt",hConnection,UPtr,&Path,UPtr,&FindData,UPtr,0,UPtr,0) && (NumGet(FindData,0,"UInt") & 0x10)) ;path not found, or found path did not have the directory attribute
+  {
+   If !DllCall("wininet\FtpCreateDirectory","UInt",hConnection,UPtr,&Path) ;failed to create directory
+    Return, 1
+  }
+ }
  Return, 0
 }
 
