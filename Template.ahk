@@ -141,7 +141,10 @@ TemplateProcessForEach(This,Attributes,TagContents)
   TemplateScriptProperties.Fragment := Entry.Fragment
   TemplateScriptProperties.Title := HTMLEscape(Entry.Title)
   TemplateScriptProperties.Image := HTMLEscape(Entry.Image)
-  TemplateScriptProperties.Description := HTMLEscape(Entry.Description)
+  Temp1 := HTMLEscape(Entry.Description)
+  StringReplace, Temp1, Temp1, &lt;, <, All
+  StringReplace, Temp1, Temp1, &gt;, >, All
+  TemplateScriptProperties.Description := Temp1
   TemplateScriptProperties.Topic := HTMLEscape(Entry.URL)
   TemplateScriptProperties.Source := HTMLEscape(Entry.Source)
   Result .= TemplatePage(TagContents)
