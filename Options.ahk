@@ -22,8 +22,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ProcessCommandLineParameters()
 {
  global
- local ValidParameters, Temp1, Parameter, Position, Option, Value
- ValidParameters := Object("ForumUsername",0,"AutoHotkeyNetUsername",0,"AutoHotkeyNetPassword",0,"ShowGUI",1,"UploadWebsite",1,"SearchEnglishForum",1,"SearchGermanForum",1,"UseCache",1,"Template",0,"SortEntries",1,"OutputPath",0,"RelativeLinks",1,"DownloadResources",1) ;a list of parameters and the types they accept (0 for string, 1 for boolean)
+ local Temp1, Parameter, Position, Option, Value
  Loop, %0% ;loop through each command line parameter in the form "--OPTION=VALUE"
  {
   Parameter := %A_Index%
@@ -45,6 +44,26 @@ ProcessCommandLineParameters()
     Value := !!Value
   }
   %Option% := Value
+ }
+}
+
+LoadOptions()
+{
+ global
+ If !FileExist(ConfigurationPath)
+  Return
+ For Key In ValidParameters
+  IniRead, %Key%, %ConfigurationPath%, Options, %Key%, % %Key% . " " ;read in the key if it exists, otherwise use the original value
+}
+
+SaveOptions()
+{
+ global ValidParameters, ConfigurationPath
+ FileAppend,, %ConfigurationPath%
+ For Key In ValidParameters
+ {
+  If (Key != "AutoHotkeyNetPassword") ;do not save the account password
+   IniWrite, % %Key%, %ConfigurationPath%, Options, %Key%
  }
 }
 
@@ -120,6 +139,7 @@ ShowOptionsDialog()
  
  GuiEscape:
  GuiClose:
+ SaveOptions() ;save options to the configuration file
  ExitApp
 
  OptionsDialogSubmit:
@@ -139,6 +159,7 @@ ShowOptionsDialog()
   Gui, Show
   Return
  }
+ SaveOptions() ;save options to the configuration file
 
  Gui, Destroy
 

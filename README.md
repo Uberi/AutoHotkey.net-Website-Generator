@@ -38,7 +38,7 @@ The above would silently generate a page for the user "Uberi" at the AutoHotkey 
 
 ### GUI configuration
 
-A configuration GUI will be shown if the "ShowGUI" option is set.
+A configuration GUI will be shown if the "ShowGUI" option is set. This option also enables usage of a configuration file, which is in INI format.
 
 Options
 -------

@@ -44,10 +44,16 @@ DownloadResources := 0
 ;output
 OutputPath := A_ScriptDir . "\WebPage"
 
+ValidParameters := Object("ForumUsername",0,"AutoHotkeyNetUsername",0,"AutoHotkeyNetPassword",0,"ShowGUI",1,"UploadWebsite",1,"SearchEnglishForum",1,"SearchGermanForum",1,"UseCache",1,"Template",0,"SortEntries",1,"OutputPath",0,"RelativeLinks",1,"DownloadResources",1) ;a list of parameters and the types they accept (0 for string, 1 for boolean)
+
 ResourcesPath := A_ScriptDir . "\Resources"
+ConfigurationPath := A_ScriptDir . "\Options.ini"
 
 If (AutoHotkeyNetUsername = "") ;set the AutoHotkey.net username if it was not given
  AutoHotkeyNetUsername := ForumUsername
+
+If ShowGUI
+ LoadOptions() ;load options from the configuration file
 
 ProcessCommandLineParameters() ;process any command line parameters
 
