@@ -134,11 +134,15 @@ ShowOptionsDialog()
  Gui, Font, s10 Bold
  Gui, Add, Button, x330 y300 w290 h30 gOptionsDialogSubmit Default, Generate Website
 
+ Gosub, EnterUsername
+ Gosub, UploadWebsite
+
  Gui, Show, w630 h340, Website Generator
  Return
  
  GuiEscape:
  GuiClose:
+ Gui, Submit
  SaveOptions() ;save options to the configuration file
  ExitApp
 
