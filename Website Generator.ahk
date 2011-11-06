@@ -67,13 +67,14 @@ Else
  TemplatePath := ResourcesPath . "\" . Template
  If !InStr(FileExist(TemplatePath),"D") ;template directory does not exist
   OutputError("Invalid template: " . Template,1)
- GenerateWebsite(ResourcesPath,TemplatePath,OutputPath,Template,UseCache,Cache,UploadWebsite)
+ GenerateWebsite(ResourcesPath,TemplatePath,OutputPath,Template,UseCache,UploadWebsite)
  ExitApp
 }
 Return
 
-GenerateWebsite(ResourcesPath,TemplatePath,OutputPath,Template,UseCache,Cache,UploadWebsite)
+GenerateWebsite(ResourcesPath,TemplatePath,OutputPath,Template,UseCache,UploadWebsite)
 {
+ global Cache
  OutputPath := ExpandPath(OutputPath) ;expand the path of the output
  TemplatePath := ExpandPath(TemplatePath) ;set the path of the template
 

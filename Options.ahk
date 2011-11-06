@@ -173,7 +173,7 @@ ShowOptionsDialog()
  Gui, Add, Progress, x10 y40 w450 h20 vGenerationProgress -Smooth 0x8, 0
  Gui, Show, w470 h70, Website Generator
  SetTimer, UpdateProgress, 40
- GenerateWebsite(ResourcesPath,TemplatePath,OutputPath,Template,UseCache,Cache,UploadWebsite)
+ GenerateWebsite(ResourcesPath,TemplatePath,OutputPath,Template,UseCache,UploadWebsite)
  SetTimer, UpdateProgress, Off
  Gui, Destroy
  MsgBox, 64, Complete, Website generation complete.
