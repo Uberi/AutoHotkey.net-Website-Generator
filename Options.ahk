@@ -163,6 +163,12 @@ ShowOptionsDialog()
   Gui, Show
   Return
  }
+ If (UploadWebsite && AutoHotkeyNetPassword = "") ;password is blank
+ {
+  OutputError("AutoHotkey.net account password is blank.")
+  Gui, Show
+  Return
+ }
  SaveOptions() ;save options to the configuration file
 
  Gui, Destroy
