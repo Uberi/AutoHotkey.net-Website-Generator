@@ -142,9 +142,21 @@ TemplateProcessForEach(This,Attributes,TagContents)
   TemplateScriptProperties.Title := HTMLEscape(Entry.Title)
   TemplateScriptProperties.Image := HTMLEscape(Entry.Image)
   Temp1 := HTMLEscape(Entry.Description)
+
+  ;unescape certain HTML entities
   StringReplace, Temp1, Temp1, &lt;, <, All
   StringReplace, Temp1, Temp1, &gt;, >, All
-  TemplateScriptProperties.Description := Temp1
+  FoundPos := 1, FoundPos1 := 1, Description := ""
+  While, FoundPos := RegExMatch(Temp1,"S)<a\s[^>]+>",Match,FoundPos) ;unescape quotes only inside hyperlink tags
+  {
+   Description .= SubStr(Temp1,FoundPos1,FoundPos - FoundPos1)
+   FoundPos += StrLen(Match), FoundPos1 := FoundPos
+   StringReplace, Match, Match, &quot;, ", All
+   Description .= Match
+  }
+  Description .= SubStr(Temp1,FoundPos1)
+
+  TemplateScriptProperties.Description := Description
   TemplateScriptProperties.Topic := HTMLEscape(Entry.URL)
   TemplateScriptProperties.Source := HTMLEscape(Entry.Source)
   Result .= TemplatePage(TagContents)
