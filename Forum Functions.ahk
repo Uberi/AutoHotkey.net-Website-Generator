@@ -34,11 +34,11 @@ MsgBox % TopicList
 ;searches the AutoHotkey forums for scripts posted by a specified forum user
 ForumSearchAll(ForumUsername)
 {
- global Cache, SearchEnglishForum, SearchGermanForum
- Results := Array()
+ global SearchEnglishForum, SearchGermanForum
+ Results := []
  If SearchEnglishForum
  {
-  For Index, Result In ForumSearch("http://www.autohotkey.com/forum/","",ForumUsername,2) ;search the English AutoHotkey forum for posts by the specified forum user
+  For Index, Result In ForumSearch("http://www.autohotkey.com/community/search.php","",ForumUsername,2) ;search the English AutoHotkey forum for posts by the specified forum user
   {
    If (Result.Author = ForumUsername)
     ExpandSearchResult(Result), ObjInsert(Results,Result)
@@ -46,7 +46,7 @@ ForumSearchAll(ForumUsername)
  }
  If SearchGermanForum
  {
-  For Index, Result In ForumSearch("http://de.autohotkey.com/forum/","",ForumUsername,2) ;search the German AutoHotkey forum for posts by the specified forum user
+  For Index, Result In ForumSearch("http://de.autohotkey.com/forum/search.php","",ForumUsername,2) ;search the German AutoHotkey forum for posts by the specified forum user
   {
    If (Result.Author = ForumUsername)
     ExpandSearchResult(Result), ObjInsert(Results,Result)
@@ -81,25 +81,35 @@ ExpandSearchResult(ByRef Result)
 }
 
 ;searches the AutoHotkey forum and returns the results in the form of an object
-ForumSearch(BaseURL = "",Keywords = "",Author = "",ForumIndex = 0,ResultLimit = 0,SearchAny = 0,PreviousDays = 0)
+ForumSearch(BaseURL = "",Keywords = "",Author = "",ForumIndex = 0,ResultLimit = 0,SearchAny = 0)
 {
- If !ForumIndex ;search all available forums if a specific forum is not specified
-  ForumIndex := -1 ;the index representing all available forums is -1
  If (BaseURL = "")
-  BaseURL := "http://www.autohotkey.com/forum/"
+  BaseURL := "http://www.autohotkey.com/community/search.php"
 
- URL := BaseURL . "search.php?mode=results"
- POSTData := "search_keywords=" . URLEncode(Keywords) . "&search_terms=" . (SearchAny ? "any" : "all") . "&search_author=" . URLEncode(Author) . "&search_forum=" . (ForumIndex ? ForumIndex : -1) . "&search_time=" . PreviousDays . "&search_fields=all&show_results=topics&return_chars=0&sort_by=0&sort_dir=DESC"
+ URL := BaseURL
+  . "?keywords=" . URLEncode(Keywords) ;search keywords
+  . "&terms=" . (SearchAny ? "any" : "all") ;search any or all terms
+  . "&author=" . URLEncode(Author) ;search for a specified author
+  . (ForumIndex ? ("&fid%5B%5D=" . ForumIndex) : "") ;search in specified forum
+  ;. "&sc=1" ;search in subforums
+  . "&sf=all" ;search within post subjects and message text
+  ;. "&sk=t" ;sort by post time
+  ;. "&sd=d" ;sort descending
+  . "&sr=topics" ;show topics rather than posts
+  ;. "&st=0" ;show all results
+  ;. "&ch=0" ;return 0 characters of the posts
 
- Result := Array() ;prepare the result array
+ Result := [] ;prepare the result array
  Loop
  {
   ;request the search results page
-  WebRequest := ComObjCreate("WinHttp.WinHttpRequest.5.1"), WebRequest.Open("POST",URL)
+  WebRequest := ComObjCreate("WinHttp.WinHttpRequest.5.1"), WebRequest.Open("GET",URL)
   WebRequest.SetRequestHeader("Content-Type","application/x-www-form-urlencoded")
-  WebRequest.Send(POSTData), SearchResult := WebRequest.ResponseText, WebRequest := ""
+  WebRequest.Send(), SearchResult := WebRequest.ResponseText, WebRequest := ""
 
-  If (!ParseSearchResultPage(SearchResult,BaseURL,Result,URL,ResultLimit) || URL = "")
+  ;obtain the next page
+  URL := ParseSearchResultPage(SearchResult,BaseURL,Result,ResultLimit)
+  If !URL ;no page remains
    Break
   Sleep, 3000 ;delay to allow the request to close
  }
@@ -107,69 +117,67 @@ ForumSearch(BaseURL = "",Keywords = "",Author = "",ForumIndex = 0,ResultLimit = 
 }
 
 ;parses a search result page
-ParseSearchResultPage(SearchResult,BaseURL,ByRef Result,ByRef NextPage,ResultLimit)
+ParseSearchResultPage(SearchResult,BaseURL,ByRef Result,ResultLimit = 0)
 {
- SearchResult := SubStr(SearchResult,InStr(SearchResult," class=""forumline""") + 18) ;trim everything up to the main search results table
- SearchResult := SubStr(SearchResult,InStr(SearchResult,"<tr>") + 5) ;trim past the headers row
- SearchResult := SubStr(SearchResult,InStr(SearchResult,"</tr>") + 5) ;trim off the header row
-
- ;get a link to the next page if it is present
- NextPage := SubStr(SearchResult,InStr(SearchResult,"<span class=""nav"">") + 18) ;skip to the navigation table
- NextPage := SubStr(NextPage,InStr(NextPage,"<span class=""nav"">") + 18) ;skip to the second span of the navigation table
- NextPage := SubStr(NextPage,1,InStr(NextPage,"</span>") - 1) ;skip to the second span of the navigation table
- If (SubStr(NextPage,-3) = "</a>") ;a link to the next page is present
+ ;process navigation
+ RegExMatch(SearchResult,"isS)<div[^>]+class=""nav"".*?</div>",Navigation) ;obtain the navigation section
+ If RegExMatch(Navigation,"iS)<a[^>]+href=""\K[^""]*(?!.*<(?:a|span)\b)",Field) ;obtain the last link in the section (the link to the next page)
  {
-  NextPage := SubStr(NextPage,InStr(NextPage," href=""",0,0) + 7) ;obtain the rightmost URL, which links to the next page
-  NextPage := SubStr(NextPage,1,InStr(NextPage,"""") - 1) ;trim the closing quote mark and any remaining data off of the URL
-  NextPage := BaseURL . ConvertEntities(NextPage)
+  ;obtain the page URL
+  SplitPath, BaseURL,, Path
+  NextPage := Path . "/" . ConvertEntities(Field)
+
+  ;remove the "sid" parameter
+  NextPage := RegExReplace(NextPage,"iS)(?:(\?)|&)sid=\w+","$1")
  }
  Else ;at the last page
   NextPage := ""
 
- SearchResult := SubStr(SearchResult,1,InStr(SearchResult,"</table>") - 1) ;trim everything after the navigation table
- SearchResult := SubStr(SearchResult,1,InStr(SearchResult,"<tr>",0,0) - 1) ;trim off the last row of the table
+ ;obtain the results table
+ RegExMatch(SearchResult,"iS)<table\b[^<]*<tr\b[^<]*<th\b.*?</tr>(.*?)</table>",Field)
+ SearchResult := Field1
 
- If InStr(SearchResult,"<td align=""center"">") ;no results found, error message shown
-  Return, 0
+ If InStr(SearchResult,"<td class=""row1"" align=""center"">") ;no results found, error message shown
+  Return, ""
 
- SearchResult := RegExReplace(SearchResult,"iS)<(?:tr|td|img)[^>]*>|\n|\r") ;remove opening table row tags, opening table data tags, and newlines
- StringReplace, SearchResult, SearchResult, </tr>, `n, All ;replace closing table row tags with newlines
- SearchResult := Trim(SearchResult," `t`n") ;trim whitespace and newlines from the beginning and the end
- Loop, Parse, SearchResult, `n, %A_Space%`t ;build an array of search results, trimming whitespace and newlines from the beginning and end
+ SplitPath, BaseURL,, Path
+ FoundPos := 1
+ While, FoundPos := RegExMatch(SearchResult,"isS)<tr[^>]*>(.*?)</tr>",Field,FoundPos)
  {
-  If (ResultLimit && ObjMaxIndex(Result) >= ResultLimit)
-   Return, 0
+  If (ResultLimit > 0 && ObjMaxIndex(Result) >= ResultLimit)
+   Return, ""
 
-  RowResult := Object() ;prepare the row result object
-  Row := RegExReplace(A_LoopField,"iS)<(?:span|/span|br)[^>]*>") ;remove opening and closing span tags and line break tags
-  StringReplace, Row, Row, </td>, `n, All ;replace closing table data tags with newlines
-  Row := Trim(Row," `t`n") ;trim whitespace and newlines from the beginning and the end
-  StringSplit, Field, Row, `n, %A_Space%`t ;split the row into separate fields
+  FoundPos += StrLen(Field)
 
-  RegExMatch(Field1,"iS) href=""([^""]+)""",Output) ;find the forum URL
-  RowResult.Forum := BaseURL . ConvertEntities(Output1) ;forum the topic is located in
-  RegExMatch(Field2,"iS) href=""([^""]+)""[^>]*>([^<]*)<",Output) ;find the topic URL and topic title
-  RowResult.URL := BaseURL . ConvertEntities(Output1) ;URL of the topic
-  RowResult.Title := ConvertEntities(Output2) ;title of the topic
-  RegExMatch(Field3,"iS)<a href=""([^""]+)""[^>]*>([^<]*)<",Output) ;find the profile URL and author name
-  RowResult.Profile := BaseURL . ConvertEntities(Output1) ;profile of the author
-  RowResult.Author := ConvertEntities(Output2) ;username of the author
-  RowResult.Replies := Field4 ;number of reply posts
-  RowResult.Views := Field5 ;number of times the topic was viewed
+  If !RegExMatch(Field1
+   ,"isS)<a href=""(?P<Link>[^""]*)""[^>]+class=""topictitle""[^>]*>(?P<Title>[^<]*).*?"
+   . "<p[^>]+class=""gensmall""[^<]+<a\b[^>]*>(?P<Forum>[^<]*).*?"
+   . "<p class=""topicauthor"">[^<]*<a href=""(?P<Profile>[^""]*)""[^>]*>(?P<Author>[^<]*).*?"
+   . "<p class=""topicdetails"">(?P<Replies>[^<]*).*?"
+   . "<p class=""topicdetails"">(?P<Views>[^<]*)",Field)
+   Continue
 
-  ;remove the "sid" parameter from fields that contain links, as it causes issues with retrieval
-  RowResult.Forum := RegExReplace(RowResult.Forum,"iS)[&]sid=\w+")
-  RowResult.URL := RegExReplace(RowResult.URL,"iS)[&]sid=\w+")
-  RowResult.Profile := RegExReplace(RowResult.Profile,"iS)[&]sid=\w+")
-  NextPage := RegExReplace(NextPage,"iS)[&]sid=\w+")
+  RowResult := Object()
+  RowResult.URL := Path . "/" . ConvertEntities(FieldLink)
+  RowResult.Title := ConvertEntities(FieldTitle)
+  RowResult.Forum := FieldForum
+  RowResult.Author := ConvertEntities(FieldAuthor)
+  RowResult.Profile := Path . "/" . ConvertEntities(FieldProfile)
+  RowResult.Replies := FieldReplies
+  RowResult.Views := FieldViews
 
-  ObjInsert(Result,RowResult)
+  ;remove the "sid" parameter
+  RowResult.Forum := RegExReplace(RowResult.Forum,"iS)(?:(\?)|&)sid=\w+","$1")
+  RowResult.URL := RegExReplace(RowResult.URL,"iS)(?:(\?)|&)sid=\w+","$1")
+  RowResult.Profile := RegExReplace(RowResult.Profile,"iS)(?:(\?)|&)sid=\w+","$1")
+
+  Result.Insert(RowResult)
  }
- Return, 1
+ Return, NextPage
 }
 
 ;retrieves information about a given forum topic
-ForumGetTopicInfo(URL)
+ForumGetTopicInfo(URL) ;wip
 {
  WebRequest := ComObjCreate("WinHttp.WinHttpRequest.5.1"), WebRequest.Open("GET",URL)
  WebRequest.Send(), ForumTopic := WebRequest.ResponseText, WebRequest := ""
@@ -177,22 +185,18 @@ ForumGetTopicInfo(URL)
  Result := Object()
 
  ;extract the title of the topic
- Title := SubStr(ForumTopic,InStr(ForumTopic,"<title>") + 7) ;trim up to the topic title
- Title := SubStr(Title,1,InStr(Title,"</title>") - 1) ;trim off everything after the topic title
- Result.Title := Title ;set the title field of the result
+ RegExMatch(ForumTopic,"iS)<a\b[^>]+class=""titles""[^>]*>\K[^<]*",Field)
+ Result.Title := Field
 
  ;extract the author of the topic
- RegExMatch(ForumTopic,"iS)<span class=""name"">.*?<b>([^<]*)</b>",Output) ;match the author field
- Result.Author := Output1
+ RegExMatch(ForumTopic,"iS)\bclass=""postauthor""[^>]*>\K[^<]*",Field) ;match the author field
+ Result.Author := Field
 
  ;extract the first post of the topic
- ForumTopic := SubStr(ForumTopic,InStr(ForumTopic,"<span class=""postbody"">") + 23) ;trim up to the contents of the first post
- ForumTopic := SubStr(ForumTopic,1,InStr(ForumTopic," class=""row1""") - 1) ;trim everything after the row immediately below the first post
-
- ;remove the signature if present
- Position := InStr(ForumTopic,"_________________",1,0) ;find a series of underscores, starting from the right
- If Position ;signature block found
-  ForumTopic := SubStr(ForumTopic,1,Position - 1) ;trim the signature off of the end of the post
+ RegExMatch(ForumTopic,"isS)\bclass=""postbody""[^>]*>(.*?)<table",Field) ;match the author field
+ Field1 := RegExReplace(Field1,"S)<[^>]+\bclass=""postbody"".*") ;remove forum signatures
+ Field1 := RegExReplace(Field1,"S)<[^>]+\bclass=""gensmall"".*") ;remove modification notices
+ ForumTopic := Field1
 
  ;extract a description of the topic
  Temp1 := SubStr(ForumTopic,1,InStr(ForumTopic,"<br ") - 1) ;extract the first paragraph of the post
@@ -211,7 +215,7 @@ ForumGetTopicInfo(URL)
  Result.Description := Temp1 ;set the description field of the result
 
  ;extract an image if present
- If RegExMatch(ForumTopic,"iS)<img\s.*?src=""([^:]+://[^""]*)""",Output) ;match images that are sourced from absolute links
+ If RegExMatch(ForumTopic,"iS)<img\b[^>]*src=""([^:]+://[^""]*)""",Output) ;match images that are sourced from absolute links
   Result.Image := Output1 ;set the image field of the result
 
  ;extract a download link if present
