@@ -204,7 +204,7 @@ ForumGetTopicInfo(URL) ;wip
  StringReplace, Temp1, Temp1, `r,, All ;remove all carriage returns
  StringReplace, Temp1, Temp1, `n,, All ;remove all newlines
  Temp1 := Trim(Temp1) ;remove leading and trailing whitespace
- Temp1 := RegExReplace(Temp1,"S)\.\K[^\.<>]+:$") ;if the last sentence ends with a colon, and there are sentences before it, remove the last sentence
+ Temp1 := RegExReplace(Temp1,"S)\.\K[^\.:<>\[\]]+:$") ;if the last sentence ends with a colon, and there are sentences before it, remove the last sentence
  Temp1 := RegExReplace(Temp1,"S)^[^\.]*\K:$",".") ;if the description ends with a colon, and contains only one sentence, replace the colon with a period
  If (SubStr(Temp1,0) != ".") ;insert a period at the end of the description if one is not present
   Temp1 .= "."
