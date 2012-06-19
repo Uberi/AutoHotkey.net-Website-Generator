@@ -19,8 +19,6 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-;wip: support github repos: http://www.autohotkey.com/community/viewtopic.php?f=2&t=68116&p=528072#p528072
-
 ;initializes resources needed by the templating engine
 TemplateInit()
 {
