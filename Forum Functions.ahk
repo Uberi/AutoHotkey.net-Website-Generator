@@ -1,7 +1,7 @@
 #NoEnv
 
 /*
-Copyright 2011 Anthony Zhang <azhang9@gmail.com>
+Copyright 2011-2012 Anthony Zhang <azhang9@gmail.com>
 
 This file is part of AutoHotkey.net Website Generator. Source code is available at <https://github.com/Uberi/AutoHotkey.net-Website-Generator>.
 
