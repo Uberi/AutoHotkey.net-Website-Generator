@@ -80,22 +80,22 @@ ShowOptionsDialog()
     Gui, Font, Norm
     Gui, Add, Text, x20 y60 w160 h20, Forum Username:
     Gui, Add, Edit, x180 y60 w130 h20 vForumUsername gEnterUsername, %ForumUsername%
-    Gui, Add, CheckBox, x20 y90 w290 h20 vUsernamesDiffer gUsernamesDiffer, My AutoHotkey.net username is something different
+    Gui, Add, CheckBox, x20 y90 w290 h20 vUsernamesDiffer gUsernamesDiffer, &My AutoHotkey.net username is something different
     Gui, Add, Text, x20 y120 w160 h20 vAutoHotkeyNetUsernameLabel Disabled, AutoHotkey.net Username:
     Gui, Add, Edit, x180 y120 w130 h20 vAutoHotkeyNetUsername Disabled, %ForumUsername%
 
     Gui, Font, Bold
     Gui, Add, GroupBox, x330 y40 w290 h80, Upload
     Gui, Font, Norm
-    Gui, Add, CheckBox, x340 y60 w270 h20 vUploadWebsite gUploadWebsite Checked%UploadWebsite%, Upload website to AutoHotkey.net
+    Gui, Add, CheckBox, x340 y60 w270 h20 vUploadWebsite gUploadWebsite Checked%UploadWebsite%, &Upload website to AutoHotkey.net
     Gui, Add, Text, x340 y90 w140 h20 vAutoHotkeyNetPasswordLabel Disabled, AutoHotkey.net Password:
     Gui, Add, Edit, x480 y90 w130 h20 vAutoHotkeyNetPassword Disabled Password, %AutoHotkeyNetPassword%
 
     Gui, Font, Bold
     Gui, Add, GroupBox, x10 y160 w310 h70, Search
     Gui, Font, Norm
-    Gui, Add, CheckBox, x20 y180 w290 h20 vSearchEnglishForum Checked%SearchEnglishForum%, Search in the English AutoHotkey forums
-    Gui, Add, CheckBox, x20 y200 w290 h20 vSearchGermanForum Checked%SearchGermanForum%, Search in the German AutoHotkey forums
+    Gui, Add, CheckBox, x20 y180 w290 h20 vSearchEnglishForum Checked%SearchEnglishForum%, Search in the &English AutoHotkey forums
+    Gui, Add, CheckBox, x20 y200 w290 h20 vSearchGermanForum Checked%SearchGermanForum%, Search in the &German AutoHotkey forums
 
     Gui, Font, Bold
     Gui, Add, GroupBox, x330 y130 w290 h100, Appearance
@@ -111,8 +111,8 @@ ShowOptionsDialog()
     GuiControl, ChooseString, Template, %Template%
 
     ;add sorting options and choose the correct default
-    Gui, Add, Radio, x340 y180 w270 h20 vSortTime, Sort entries by order updated
-    Gui, Add, Radio, x340 y200 w270 h20 vSortEntries, Sort entries alphabetically
+    Gui, Add, Radio, x340 y180 w270 h20 vSortTime, Sort entries by &order updated
+    Gui, Add, Radio, x340 y200 w270 h20 vSortEntries, Sort entries &alphabetically
     If SortEntries
         GuiControl,, SortEntries, 1
     Else
@@ -121,9 +121,9 @@ ShowOptionsDialog()
     Gui, Font, Bold
     Gui, Add, GroupBox, x10 y240 w310 h90, Behavior
     Gui, Font, Norm
-    Gui, Add, CheckBox, x20 y260 w290 h20 vUseCache Checked%UseCache%, Use page information cache
-    Gui, Add, CheckBox, x20 y280 w290 h20 vRelativeLinks Checked%RelativeLinks%, Rewrite script links into site links.
-    Gui, Add, CheckBox, x20 y300 w290 h20 vDownloadResources Checked%DownloadResources%, Download all resources
+    Gui, Add, CheckBox, x20 y260 w290 h20 vUseCache Checked%UseCache%, Use page information &cache
+    Gui, Add, CheckBox, x20 y280 w290 h20 vRelativeLinks Checked%RelativeLinks%, &Rewrite script links into site links.
+    Gui, Add, CheckBox, x20 y300 w290 h20 vDownloadResources Checked%DownloadResources%, &Download all resources
 
     Gui, Font, Bold
     Gui, Add, GroupBox, x330 y240 w290 h50, Output
