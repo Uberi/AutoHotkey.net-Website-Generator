@@ -198,7 +198,8 @@ TemplateProcessIfNot(This,Attributes,TagContents)
         If ObjHasKey(TemplateProperties,Key) && TemplateProperties[Key] != "" ;key is present and not blank in template properties
             Return
         If ObjHasKey(TemplateScriptProperties,Key) && TemplateScriptProperties[Key] != "" ;key is present and not blank in script properties
-            Break
+            Return
+        Break
     }
     Return, TemplatePage(TagContents)
 }
